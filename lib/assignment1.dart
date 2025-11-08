@@ -215,7 +215,7 @@ abstract class BankAccount {
   String _accountNumber;
   String _accountHolderName;
   double _balance;
-
+ List<String> _transactions = []; // to store 
   BankAccount(this._accountNumber, this._accountHolderName, this._balance);
 
   // Getters
@@ -240,6 +240,24 @@ abstract class BankAccount {
   void deposit(double amount);
   void withdraw(double amount);
 
+
+
+// ✅ Method to record transactions
+  void addTransaction(String details) {
+    _transactions.add(details);
+  }
+
+  // ✅ Show transaction history
+  void showTransactions() {
+    print("\n📜 Transaction History for $_accountNumber:");
+    if (_transactions.isEmpty) {
+      print("No transactions yet.");
+    } else {
+      for (var t in _transactions) {
+        print("- $t");
+      }
+    }
+  }
   // Display info
   void displayInfo() {
     print("Account: ${_accountNumber}, Holder: ${_accountHolderName}, Balance: $_balance");
@@ -332,6 +350,39 @@ class PremiumAccount extends BankAccount implements InterestBearing {
   }
 }
 
+
+// new student
+
+
+
+class StudentAccount extends BankAccount {
+  StudentAccount(String accNum, String accHolder, double balance)
+      : super(accNum, accHolder, balance);
+
+  @override
+  void deposit(double amount) {
+    if (_balance + amount > 5000) {
+      print("❌ Cannot exceed max balance of \$5000 for StudentAccount");
+      return;
+    }
+    _balance += amount;
+    addTransaction("Deposited \$$amount to StudentAccount");
+  }
+
+@override
+  void withdraw(double amount) {
+    if (amount > _balance) {
+      print("❌ Insufficient funds in StudentAccount");
+      return;
+    }
+    _balance -= amount;
+    addTransaction("Withdrew \$$amount from StudentAccount");
+  }
+}
+
+
+
+
 // Bank class
 class Bank {
   List<BankAccount> accounts = [];
@@ -367,6 +418,19 @@ class Bank {
     }
   }
 
+
+  //student
+  // ✅ Apply monthly interest to all interest-bearing accounts
+  void applyMonthlyInterest() {
+    print("\n💰 Applying monthly interest...");
+    for (var acc in accounts) {
+      if (acc is InterestBearing) {
+        acc.calculateInterest();
+      }
+    }
+  }
+
+
   void generateReport() {
     print("\n--- Bank Report ---");
     for (var acc in accounts) {
@@ -379,14 +443,24 @@ class Bank {
   }
 }
 
+
+
+
+
+
+
+
 // Main
 void main() {
   Bank bank = Bank();
   bank.createAccount(SavingsAccount('S1', 'John', 1000));
   bank.createAccount(CheckingAccount('C1', 'Jane', 500));
   bank.createAccount(PremiumAccount('P1', 'Alice', 15000));
+bank.createAccount(StudentAccount('ST1', 'Lily', 2000));
 
   bank.accounts[0].withdraw(100); // SavingsAccount
   bank.transfer('S1', 'C1', 200);
   bank.generateReport();
+   bank.accounts[0].showTransactions();
+  bank.accounts[3].showTransactions(); // StudentAccount history
 }
