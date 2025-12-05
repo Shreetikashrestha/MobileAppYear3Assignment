@@ -6,7 +6,7 @@ import 'screens/onboardingscreens/onboarding3_screen.dart';
 // import 'screens/onboarding/onboarding_screen3.dart'; // Add when you create it
 import 'screens/loginSignup/signup_screen.dart';
 
-
+import 'screens/home/home_screen.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -31,9 +31,8 @@ class MyApp extends StatelessWidget {
         '/onboarding2': (context) => const OnboardingScreen2(),
         '/onboarding3': (context) => const OnboardingScreen3(),
         '/signup': (context) => const SignupScreen(),
-        // '/login': (context) => const LoginScreen(),
-        // '/register': (context) => const RegisterScreen(),
-        // '/home': (context) => const HomeScreen(),
+
+        '/home': (context) => const HomeScreen(),
       },
     );
   }
