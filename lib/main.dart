@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.purple,
         useMaterial3: true,
       ),
-      // Set splash screen as the initial route
+
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
