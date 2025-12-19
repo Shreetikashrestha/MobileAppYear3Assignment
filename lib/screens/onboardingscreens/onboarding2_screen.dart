@@ -29,14 +29,14 @@ class _OnboardingScreen2State extends State<OnboardingScreen2> {
             ),
           ),
 
-          // MAIN CONTENT
+
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // BACK BUTTON
+
                   const SizedBox(height: 10),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
@@ -45,7 +45,7 @@ class _OnboardingScreen2State extends State<OnboardingScreen2> {
 
                   const SizedBox(height: 40),
 
-                  // TITLE
+
                   const Text(
                     "Describe Yourself\nand Your Content",
                     style: TextStyle(
@@ -57,7 +57,7 @@ class _OnboardingScreen2State extends State<OnboardingScreen2> {
 
                   const SizedBox(height: 20),
 
-                  // BIG TEXTFIELD
+
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -84,7 +84,7 @@ class _OnboardingScreen2State extends State<OnboardingScreen2> {
 
                   const Spacer(),
 
-                  // CONTINUE BUTTON
+
                   Container(
                     width: double.infinity,
                     height: 50,

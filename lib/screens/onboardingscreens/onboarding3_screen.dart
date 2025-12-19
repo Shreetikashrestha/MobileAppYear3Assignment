@@ -36,7 +36,7 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
     return Scaffold(
       body: Stack(
         children: [
-          // BACKGROUND IMAGE WITH 20% OPACITY
+
           Opacity(
             opacity: 0.20,
             child: Container(
@@ -49,7 +49,6 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
             ),
           ),
 
-          // MAIN CONTENT
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -67,7 +66,7 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
 
                     const SizedBox(height: 40),
 
-                    // TITLE
+
                     const Text(
                       "TELL US MORE\nABOUT YOURSELF",
                       style: TextStyle(
@@ -78,7 +77,6 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
 
                     const SizedBox(height: 30),
 
-                    // GENDER DROPDOWN
                     const Text(
                       "Gender",
                       style: TextStyle(
