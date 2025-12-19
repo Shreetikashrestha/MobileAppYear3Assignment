@@ -29,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset("/Users/shreetikashrestha/Desktop/influcollab_app/lib/assets/images/splashbg.jpg", fit: BoxFit.cover),
+          Image.asset("/Users/shreetikashrestha/Desktop/influcollab_app/assets/images/splashbg.jpg", fit: BoxFit.cover),
 
           Center(
             child: Container(
@@ -39,7 +39,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 borderRadius: BorderRadius.circular(50),
               ),
               child: Image.asset(
-                "/Users/shreetikashrestha/Desktop/influcollab_app/lib/assets/images/logo.png",
+                "/Users/shreetikashrestha/Desktop/influcollab_app/assets/images/logo.png",
                 width: 120,
               ),
             ),

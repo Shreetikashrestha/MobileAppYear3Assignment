@@ -42,7 +42,7 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
             child: Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage("/Users/shreetikashrestha/Desktop/influcollab_app/lib/assets/images/splashbg.jpg"),
+                  image: AssetImage("/Users/shreetikashrestha/Desktop/influcollab_app/assets/images/splashbg.jpg"),
                   fit: BoxFit.cover,
                 ),
               ),

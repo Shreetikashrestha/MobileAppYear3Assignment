@@ -22,7 +22,7 @@ class _OnboardingScreen2State extends State<OnboardingScreen2> {
             child: Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage("assets/images/splashbg.jpg"), // FIXED PATH
+                  image: AssetImage("/Users/shreetikashrestha/Desktop/influcollab_app/assets/images/splashbg.jpg"), // FIXED PATH
                   fit: BoxFit.cover,
                 ),
               ),

@@ -118,7 +118,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: Image.asset(
-                          "/Users/shreetikashrestha/Desktop/influcollab_app/lib/assets/images/logo.png",
+                          "/Users/shreetikashrestha/Desktop/influcollab_app/assets/images/logo.png",
                           height: 80,
                           fit: BoxFit.cover,
                         ),

@@ -15,10 +15,10 @@ class _HomeScreenState extends State<HomeScreen> {
     Campaign(
       category: 'Fashion',
       image: 'assets/images/fashion_campaign.jpg',
-      logo: 'assets/images/luxe_logo.png',
+      logo: '/Users/shreetikashrestha/Desktop/influcollab_app/assets/images/luxe_logo.png',
       brandName: 'Luxe Fashion',
       title: 'Summer Collection Launch',
-      description: 'Looking for fashion influencers to promote our new summer collection. Must have stron...',
+      description: 'Looking for fashion influencers to promote our new summer collection. Must have strong...',
       price: 'Rs1000-Rs15000',
       daysLeft: '5 days left',
       location: 'Remote',
@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Campaign(
       category: 'Fitness',
       image: 'assets/images/fitness_campaign.jpg',
-      logo: 'assets/images/fitlife_logo.png',
+      logo: '/Users/shreetikashrestha/Desktop/influcollab_app/assets/images/fitlife_logo.png',
       brandName: 'FitLife Pro',
       title: 'Fitness Challenge Series',
       description: '30-day fitness challenge collaboration. Looking for fitness enthusiasts to document...',
@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Campaign(
       category: 'Beauty',
       image: 'assets/images/beauty_campaign.jpg',
-      logo: 'assets/images/glowup_logo.png',
+      logo: '/Users/shreetikashrestha/Desktop/influcollab_app/assets/images/glowup_logo.png',
       brandName: 'GlowUp Beauty',
       title: 'Skincare Product Review',
       description: 'Seeking beauty influencers to review our new organic skincare line. Free products +...',
@@ -61,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage('assets/images/splashbg.jpg'),
+                  image: AssetImage('/Users/shreetikashrestha/Desktop/influcollab_app/assets/images/splashbg.jpg'),
                   fit: BoxFit.cover,
                 ),
               ),
