@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'screens/splash_screen.dart';
-import 'screens/onboardingscreens/onboarding1_screen.dart';
-import 'screens/onboardingscreens/onboarding2_screen.dart';
-import 'screens/onboardingscreens/onboarding3_screen.dart';
-// import 'screens/onboarding/onboarding_screen3.dart'; // Add when you create it
-import 'screens/loginSignup/signup_screen.dart';
+import 'core/services/hive_service.dart';
+import 'features/home/presentation/pages/splash_screen.dart';
+import 'features/onboarding/presentation/pages/onboarding1_screen.dart';
+import 'features/onboarding/presentation/pages/onboarding2_screen.dart';
+import 'features/onboarding/presentation/pages/onboarding3_screen.dart';
+import 'features/auth/presentation/pages/signup_screen.dart';
+import 'features/home/presentation/pages/home_screen.dart';
 
-import 'screens/home/home_screen.dart';
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await HiveService().init();
   runApp(const MyApp());
 }
 
@@ -23,7 +25,6 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.purple,
         useMaterial3: true,
       ),
-
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
@@ -31,7 +32,6 @@ class MyApp extends StatelessWidget {
         '/onboarding2': (context) => const OnboardingScreen2(),
         '/onboarding3': (context) => const OnboardingScreen3(),
         '/signup': (context) => const SignupScreen(),
-
         '/home': (context) => const HomeScreen(),
       },
     );
