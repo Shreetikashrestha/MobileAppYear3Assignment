@@ -1,0 +1,58 @@
+name: influcollb_app
+description: "A new Flutter project for InfluCollab - Connect Influencers with Brands"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  get: ^4.6.5
+  flutter_riverpod: ^2.4.0
+  shared_preferences: ^2.2.2
+  dio: ^5.7.0
+  connectivity_plus: ^7.0.0
+  dartz: ^0.10.1
+  path_provider: ^2.1.1
+  uuid: ^4.5.2
+  dio_smart_retry: ^6.0.0
+  pretty_dio_logger: ^1.4.0
+  flutter_secure_storage: ^9.2.2
+  equatable: ^2.0.5
+
+dev_dependencies:
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.6
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
+    - family: OpenSans
+      fonts:
+        - asset: assets/fonts/OpenSans-Regular.ttf
+        - asset: assets/fonts/OpenSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/OpenSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/OpenSans-Bold.ttf
+          weight: 700
