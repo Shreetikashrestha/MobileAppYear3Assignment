@@ -28,15 +28,18 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         final data = response.data['data'] as Map<String, dynamic>;
-        final user = AuthApiModel.fromJson(data);
+        final token = data['token'] as String;
+        final userData = data['user'] as Map<String, dynamic>;
+        final user = AuthApiModel.fromJson(userData);
 
-        // Save user session
+        // Save user session with token
         await _userSessionService.saveUserSession(
           userId: user.id ?? '',
           email: user.email,
           fullName: user.fullName,
           username: user.username,
           profilePicture: user.profilePicture,
+          token: token,
         );
 
         return user;
@@ -57,15 +60,18 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
 
       if (response.statusCode == 201 && response.data['success'] == true) {
         final data = response.data['data'] as Map<String, dynamic>;
-        final registeredUser = AuthApiModel.fromJson(data);
+        final token = data['token'] as String;
+        final userData = data['user'] as Map<String, dynamic>;
+        final registeredUser = AuthApiModel.fromJson(userData);
 
-        // Save user session after registration
+        // Save user session after registration with token
         await _userSessionService.saveUserSession(
           userId: registeredUser.id ?? '',
           email: registeredUser.email,
           fullName: registeredUser.fullName,
           username: registeredUser.username,
           profilePicture: registeredUser.profilePicture,
+          token: token,
         );
 
         return registeredUser;
