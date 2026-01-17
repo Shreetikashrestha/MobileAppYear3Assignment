@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:influcollb_app/core/api/api_service.dart';
+import 'package:influcollb_app/core/services/storage/user_session_service.dart';
 
-class SignupScreen extends StatefulWidget {
+class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SignupScreenState extends ConsumerState<SignupScreen> {
   final fullNameController = TextEditingController();
-  final usernameController = TextEditingController();
+  // Username field removed; server auto-generates when omitted
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
@@ -20,7 +24,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   void dispose() {
     fullNameController.dispose();
-    usernameController.dispose();
+    // usernameController disposed as it is no longer needed
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
@@ -29,16 +33,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _handleSignup() async {
     if (fullNameController.text.isEmpty ||
-        usernameController.text.isEmpty ||
         emailController.text.isEmpty ||
-        passwordController.text.isEmpty ||
-        confirmPasswordController.text.isEmpty) {
+        passwordController.text.isEmpty) {
       _showMessage('Please fill all fields');
-      return;
-    }
-
-    if (passwordController.text != confirmPasswordController.text) {
-      _showMessage('Passwords do not match');
       return;
     }
 
@@ -51,14 +48,34 @@ class _SignupScreenState extends State<SignupScreen> {
       _isLoading = true;
     });
 
-    // TODO: Implement actual signup logic with repository
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final apiService = ApiService();
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-      Navigator.pushReplacementNamed(context, '/home');
+      // Call backend signup
+      final response = await apiService.signup(
+        fullName: fullNameController.text.trim(),
+        // username omitted as it is auto-generated
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      // On successful signup, redirect user to Login screen
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _showMessage('Signup successful. Please log in.');
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _showMessage(e.toString().replaceFirst('Exception: ', ''));
+      }
     }
   }
 
@@ -115,19 +132,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 16),
 
                 // Username Field
-                TextFormField(
-                  controller: usernameController,
-                  decoration: InputDecoration(
-                    hintText: 'Create a username',
-                    prefixIcon: const Icon(Icons.account_circle_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 16),
+                // Username field removed (auto-generated on server)
 
                 // Email Field
                 TextFormField(
@@ -173,32 +178,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Confirm Password Field
-                TextFormField(
-                  controller: confirmPasswordController,
-                  obscureText: _obscureConfirmPassword,
-                  decoration: InputDecoration(
-                    hintText: 'Confirm your password',
-                    prefixIcon: const Icon(Icons.lock_outlined),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                ),
+                // Note: confirm password removed to simplify signup
                 const SizedBox(height: 24),
 
                 // Sign Up Button
