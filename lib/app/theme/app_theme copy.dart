@@ -10,12 +10,12 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.backgroundColor,
 
       // App Bar Theme
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.backgroundColor,
         elevation: 0,
         centerTitle: false,
         titleTextStyle: AppTextStyles.appBarTitle,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        iconTheme: IconThemeData(color: AppColors.textPrimary),
       ),
 
       // Elevated Button Theme
