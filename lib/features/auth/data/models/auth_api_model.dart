@@ -22,8 +22,10 @@ class AuthApiModel {
     return {
       'name': fullName,
       'email': email,
+      'username': username,
       'password': password,
       'confirmPassword': password,
+      'isInfluencer': false,
     };
   }
 
