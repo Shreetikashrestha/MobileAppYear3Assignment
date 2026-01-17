@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:influcollb_app/core/api/api_service.dart';
+import 'package:influcollb_app/core/services/storage/user_session_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,14 +33,50 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    // TODO: Implement actual login logic with repository
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final apiService = ApiService();
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-      Navigator.pushReplacementNamed(context, '/home');
+      // Call backend login with credential validation
+      final response = await apiService.login(
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      // Extract user data and token from response (ApiService returns data)
+      final userData = response['user'] ?? {};
+      final token = response['token'];
+
+      if (token == null) {
+        throw Exception('No token received from server');
+      }
+
+      // Save to local storage for session management
+      final prefs = await SharedPreferences.getInstance();
+      final userSessionService = UserSessionService(prefs: prefs);
+
+      await userSessionService.saveUserSession(
+        userId: userData['_id'] ?? emailController.text.trim(),
+        email: emailController.text.trim(),
+        fullName: userData['name'] ?? '',
+        username: userData['username'] ?? '',
+        token: token,
+      );
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _showMessage(e.toString().replaceFirst('Exception: ', ''));
+      }
     }
   }
 
