@@ -16,16 +16,23 @@ class ApiClient {
   void _setupInterceptors() {
     _dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) {
-          // Add auth token to headers if available (token will be managed by backend/cookies)
+        onRequest: (options, handler) async {
           options.headers['Content-Type'] = 'application/json';
+          // Add Authorization header if token exists and not for login/register
+          final token = _userSessionService.getAuthToken();
+          final isAuthRoute = options.path.contains('/auth/login') ||
+              options.path.contains('/auth/register');
+          if (token != null && token.isNotEmpty && !isAuthRoute) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
           return handler.next(options);
         },
         onError: (error, handler) {
-          // Handle 401 Unauthorized
-          if (error.response?.statusCode == 401) {
-            // Clear session and redirect to login
+          // Handle 401/403 Unauthorized/Forbidden
+          if (error.response?.statusCode == 401 ||
+              error.response?.statusCode == 403) {
             _userSessionService.clearSession();
+            // Optionally: trigger logout UI or redirect
           }
           return handler.next(error);
         },
