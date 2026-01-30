@@ -8,8 +8,8 @@ class UserSessionService {
   static const String _keyUserId = 'user_id';
   static const String _keyUserEmail = 'user_email';
   static const String _keyUserFullName = 'user_full_name';
-  static const String _keyUserUsername = 'user_username';
   static const String _keyUserProfilePicture = 'user_profile_picture';
+  static const String _keyAuthToken = 'auth_token';
 
   UserSessionService({required SharedPreferences prefs}) : _prefs = prefs;
 
@@ -18,16 +18,18 @@ class UserSessionService {
     required String userId,
     required String email,
     required String fullName,
-    required String username,
     String? profilePicture,
+    String? token,
   }) async {
     await _prefs.setBool(_keyIsLoggedIn, true);
     await _prefs.setString(_keyUserId, userId);
     await _prefs.setString(_keyUserEmail, email);
     await _prefs.setString(_keyUserFullName, fullName);
-    await _prefs.setString(_keyUserUsername, username);
     if (profilePicture != null) {
       await _prefs.setString(_keyUserProfilePicture, profilePicture);
+    }
+    if (token != null) {
+      await _prefs.setString(_keyAuthToken, token);
     }
   }
 
@@ -51,14 +53,15 @@ class UserSessionService {
     return _prefs.getString(_keyUserFullName);
   }
 
-  // Get current user username
-  String? getCurrentUserUsername() {
-    return _prefs.getString(_keyUserUsername);
-  }
 
   // Get current user profile picture
   String? getCurrentUserProfilePicture() {
     return _prefs.getString(_keyUserProfilePicture);
+  }
+
+  // Get auth token
+  String? getAuthToken() {
+    return _prefs.getString(_keyAuthToken);
   }
 
   // Clear user session (logout)
@@ -67,7 +70,7 @@ class UserSessionService {
     await _prefs.remove(_keyUserId);
     await _prefs.remove(_keyUserEmail);
     await _prefs.remove(_keyUserFullName);
-    await _prefs.remove(_keyUserUsername);
     await _prefs.remove(_keyUserProfilePicture);
+    await _prefs.remove(_keyAuthToken);
   }
 }
