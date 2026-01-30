@@ -12,7 +12,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final List<Campaign> campaigns = [
-    Campaign(
+    const Campaign(
       category: 'Fashion',
       image: 'assets/images/fashion_campaign.jpg',
       logo: 'assets/images/luxe_logo.png',
@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
       location: 'Remote',
       interested: '156 interested',
     ),
-    Campaign(
+    const Campaign(
       category: 'Fitness',
       image: 'assets/images/fitness_campaign.jpg',
       logo: 'assets/images/fitlife_logo.png',
@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
       location: 'Remote',
       interested: '312 interested',
     ),
-    Campaign(
+    const Campaign(
       category: 'Beauty',
       image: 'assets/images/beauty_campaign.jpg',
       logo: 'assets/images/glowup_logo.png',
@@ -353,7 +353,7 @@ class CampaignCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.attach_money,
+                    const Icon(Icons.attach_money,
                         size: 16, color: AppColors.success),
                     const SizedBox(width: 4),
                     Text(campaign.price,
