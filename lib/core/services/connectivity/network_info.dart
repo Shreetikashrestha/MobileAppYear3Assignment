@@ -17,8 +17,9 @@ class NetworkInfo implements INetworkInfo {
   NetworkInfo(this._connectivity);
   @override
   Future<bool> get isConnected async {
-    final result = await _connectivity.checkConnectivity(); //wifi/mobile
-    if (result == ConnectivityResult.none) {
+    final List<ConnectivityResult> results =
+        await _connectivity.checkConnectivity();
+    if (results.contains(ConnectivityResult.none)) {
       return false;
     }
     return await _internetXaKiNai();
