@@ -19,16 +19,16 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
   Future<AuthApiModel?> login(String email, String password) async {
     try {
       final response = await _apiClient.post(
-        ApiEndpoints.studentLogin,
+        ApiEndpoints.login,
         data: {
           'email': email,
           'password': password,
         },
       );
-
+      print(response);
       if (response.statusCode == 200 && response.data['success'] == true) {
         final data = response.data['data'] as Map<String, dynamic>;
-        final token = data['token'] as String;
+        final token = data['token'] as String? ?? '';
         final userData = data['user'] as Map<String, dynamic>;
         final user = AuthApiModel.fromJson(userData);
 
@@ -37,7 +37,6 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
           userId: user.id ?? '',
           email: user.email,
           fullName: user.fullName,
-          username: user.username,
           profilePicture: user.profilePicture,
           token: token,
         );
@@ -54,13 +53,13 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
   Future<AuthApiModel> register(AuthApiModel user) async {
     try {
       final response = await _apiClient.post(
-        ApiEndpoints.studentRegister,
+        ApiEndpoints.register,
         data: user.toJson(),
       );
 
       if (response.statusCode == 201 && response.data['success'] == true) {
         final data = response.data['data'] as Map<String, dynamic>;
-        final token = data['token'] as String;
+        final token = data['token'] as String? ?? '';
         final userData = data['user'] as Map<String, dynamic>;
         final registeredUser = AuthApiModel.fromJson(userData);
 
@@ -69,7 +68,6 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
           userId: registeredUser.id ?? '',
           email: registeredUser.email,
           fullName: registeredUser.fullName,
-          username: registeredUser.username,
           profilePicture: registeredUser.profilePicture,
           token: token,
         );
@@ -86,7 +84,7 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
   Future<AuthApiModel?> getUserById(String authId) async {
     try {
       final response = await _apiClient.get(
-        ApiEndpoints.studentProfile,
+        ApiEndpoints.profile,
       );
 
       if (response.statusCode == 200 && response.data['success'] == true) {
