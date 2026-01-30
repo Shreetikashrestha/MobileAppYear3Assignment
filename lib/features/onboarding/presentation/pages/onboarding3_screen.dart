@@ -105,7 +105,7 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonFormField<String>(
-                        value: selectedGender,
+                        initialValue: selectedGender,
                         decoration: const InputDecoration(
                           contentPadding: EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
@@ -176,7 +176,7 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonFormField<String>(
-                        value: selectedEthnicity,
+                        initialValue: selectedEthnicity,
                         decoration: const InputDecoration(
                           contentPadding: EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
@@ -211,7 +211,7 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonFormField<String>(
-                        value: selectedLanguage,
+                        initialValue: selectedLanguage,
                         decoration: const InputDecoration(
                           contentPadding: EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),

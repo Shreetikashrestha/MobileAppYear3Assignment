@@ -58,11 +58,11 @@ class _OnboardingScreen2State extends State<OnboardingScreen2> {
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
                           color: Colors.black12,
                           blurRadius: 5,
-                          offset: const Offset(2, 2),
+                          offset: Offset(2, 2),
                         ),
                       ],
                     ),
@@ -80,8 +80,8 @@ class _OnboardingScreen2State extends State<OnboardingScreen2> {
                   Container(
                     width: double.infinity,
                     height: 50,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
                         colors: [
                           Color(0xFFB798F0),
                           Color(0xFF9F7AEA),

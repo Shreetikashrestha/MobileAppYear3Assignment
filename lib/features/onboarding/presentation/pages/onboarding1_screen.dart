@@ -71,8 +71,8 @@ class _OnboardingScreen1State extends State<OnboardingScreen1> {
                   Container(
                     width: double.infinity,
                     height: 50,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
                         colors: [
                           Color(0xFFB798F0),
                           Color(0xFF9F7AEA),
