@@ -1,4 +1,3 @@
-// ignore_for_file: file_names
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
@@ -64,15 +63,6 @@ class AppTheme {
         unselectedItemColor: AppColors.textSecondary,
         elevation: 10,
       ),
-
-      // // Card Theme - FIXED ✅
-      // cardTheme: const CardTheme(
-      //   color: AppColors.cardBackground,
-      //   elevation: 2,
-      //   shape: RoundedRectangleBorder(
-      //     borderRadius: BorderRadius.all(Radius.circular(16)),
-      //   ),
-      // ),
 
       // Text Theme
       textTheme: const TextTheme(
