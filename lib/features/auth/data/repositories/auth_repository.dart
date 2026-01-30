@@ -41,7 +41,7 @@ class AuthRepository {
       if (result != null) {
         return Right(result);
       }
-      return Left(ApiFailure(message: 'Invalid email or password'));
+      return const Left(ApiFailure(message: 'Invalid email or password'));
     } on DioException catch (e) {
       return Left(_handleDioException(e));
     } catch (e) {
@@ -55,7 +55,7 @@ class AuthRepository {
       if (result != null) {
         return Right(result);
       }
-      return Left(ApiFailure(message: 'User not found'));
+      return const Left(ApiFailure(message: 'User not found'));
     } on DioException catch (e) {
       return Left(_handleDioException(e));
     } catch (e) {
@@ -66,14 +66,14 @@ class AuthRepository {
   Failure _handleDioException(DioException e) {
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout) {
-      return ApiFailure(message: 'Connection timeout');
+      return const ApiFailure(message: 'Connection timeout');
     } else if (e.type == DioExceptionType.badResponse) {
       final statusCode = e.response?.statusCode;
       final message = e.response?.data['message'] ?? 'Server error';
       return ApiFailure(
           message: 'Error $statusCode: $message', statusCode: statusCode);
     } else if (e.type == DioExceptionType.connectionError) {
-      return ApiFailure(message: 'No internet connection');
+      return const ApiFailure(message: 'No internet connection');
     }
     return ApiFailure(message: e.message ?? 'Unknown error');
   }
