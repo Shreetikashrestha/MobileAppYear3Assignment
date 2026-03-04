@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -45,7 +46,7 @@ class LocationService {
 
       return position;
     } catch (e) {
-      print('Error getting location: $e');
+      debugPrint('Error getting location: $e');
       rethrow;
     }
   }
@@ -56,7 +57,7 @@ class LocationService {
       final position = await Geolocator.getLastKnownPosition();
       return position;
     } catch (e) {
-      print('Error getting last known location: $e');
+      debugPrint('Error getting last known location: $e');
       return null;
     }
   }
