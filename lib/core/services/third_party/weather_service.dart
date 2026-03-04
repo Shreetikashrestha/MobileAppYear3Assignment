@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 /// Weather Service using OpenWeatherMap API (3rd Party API)
 /// Free API: https://openweathermap.org/api
 class WeatherService {
   final Dio _dio = Dio();
-  
+
   // Free API key for demo (replace with your own)
   static const String _apiKey = 'demo_key'; // User should get their own key
   static const String _baseUrl = 'https://api.openweathermap.org/data/2.5';
@@ -30,7 +31,7 @@ class WeatherService {
       }
       return null;
     } catch (e) {
-      print('Error fetching weather: $e');
+      debugPrint('Error fetching weather: $e');
       return null;
     }
   }
@@ -52,7 +53,7 @@ class WeatherService {
       }
       return null;
     } catch (e) {
-      print('Error fetching weather: $e');
+      debugPrint('Error fetching weather: $e');
       return null;
     }
   }
@@ -79,7 +80,7 @@ class WeatherService {
       }
       return [];
     } catch (e) {
-      print('Error fetching forecast: $e');
+      debugPrint('Error fetching forecast: $e');
       return [];
     }
   }
@@ -130,6 +131,8 @@ class WeatherData {
 
   String get temperatureDisplay => '${temperature.toStringAsFixed(1)}°C';
 
-  String get descriptionCapitalized =>
-      description.split(' ').map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
+  String get descriptionCapitalized => description
+      .split(' ')
+      .map((word) => word[0].toUpperCase() + word.substring(1))
+      .join(' ');
 }
