@@ -22,11 +22,9 @@ class AuthApiModel {
   //toJson - For registration
   Map<String, dynamic> toJson() {
     return {
-      'name': fullName,
+      'fullName': fullName,
       'email': email,
-      'username': username.isEmpty ? email.split('@')[0] : username,
       'password': password,
-      'confirmPassword': password,
       'isInfluencer': isInfluencer,
     };
   }
@@ -45,10 +43,20 @@ class AuthApiModel {
 
   //fromJson
   factory AuthApiModel.fromJson(Map<String, dynamic> json) {
+    // Extract ID with multiple fallbacks - handle both null and type casting
+    String? extractedId;
+    if (json['_id'] != null) {
+      extractedId = json['_id'].toString();
+    } else if (json['userId'] != null) {
+      extractedId = json['userId'].toString();
+    } else if (json['id'] != null) {
+      extractedId = json['id'].toString();
+    }
+    
     return AuthApiModel(
-      id: json['_id'] as String?,
-      fullName: json['name'] as String? ?? json['fullName'] as String,
-      email: json['email'] as String,
+      id: extractedId,
+      fullName: json['name'] as String? ?? json['fullName'] as String? ?? '',
+      email: json['email'] as String? ?? '',
       username: json['username'] as String? ?? '',
       profilePicture: json['profilePicture'],
       isInfluencer: json['isInfluencer'] as bool? ?? false,
