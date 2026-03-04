@@ -10,15 +10,21 @@ class ProfileViewModel extends StateNotifier<AsyncValue<void>> {
   final Ref _ref;
   ProfileViewModel(this._ref) : super(const AsyncValue.data(null));
 
-  Future<void> uploadProfile(File image) async {
+  Future<String> uploadProfile(File image) async {
     state = const AsyncValue.loading();
     try {
       final uploadUseCase = _ref.read(uploadImageUseCaseProvider);
       final result = await uploadUseCase.call(image);
       
-      result.fold(
-        (failure) => state = AsyncValue.error(failure.message, StackTrace.current),
-        (imageUrl) => state = const AsyncValue.data(null),
+      return result.fold(
+        (failure) {
+          state = AsyncValue.error(failure.message, StackTrace.current);
+          throw Exception(failure.message);
+        },
+        (imageUrl) {
+          state = const AsyncValue.data(null);
+          return imageUrl;
+        },
       );
     } catch (e, st) {
       state = AsyncValue.error(e, st);
