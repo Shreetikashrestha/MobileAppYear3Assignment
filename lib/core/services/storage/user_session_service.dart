@@ -21,6 +21,7 @@ class UserSessionService {
     required String email,
     required String fullName,
     String? profilePicture,
+    bool? isInfluencer,
   }) async {
     await _prefs.setBool(_keyIsLoggedIn, true);
     await _prefs.setString(_keyUserId, userId);
@@ -28,6 +29,9 @@ class UserSessionService {
     await _prefs.setString(_keyUserFullName, fullName);
     if (profilePicture != null) {
       await _prefs.setString(_keyUserProfilePicture, profilePicture);
+    }
+    if (isInfluencer != null) {
+      await _prefs.setBool('isInfluencer', isInfluencer);
     }
   }
 
@@ -78,6 +82,11 @@ class UserSessionService {
   // Get user role
   String? getUserRole() {
     return _prefs.getString(_keyUserRole);
+  }
+
+  // Get isInfluencer flag
+  bool? getIsInfluencer() {
+    return _prefs.getBool('isInfluencer');
   }
 
   // Clear user session (logout)
