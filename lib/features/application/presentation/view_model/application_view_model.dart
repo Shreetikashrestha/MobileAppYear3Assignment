@@ -61,12 +61,20 @@ class ApplicationViewModel extends StateNotifier<ApplicationState> {
   }) : super(ApplicationState());
 
   Future<bool> submitApplication(ApplicationModel application) async {
+    print('📝 Submitting application:');
+    print('📝 Campaign ID: ${application.campaignId}');
+    print('📝 Influencer ID: ${application.influencerId}');
+    print('📝 Cover Letter: ${application.coverLetter}');
+    print('📝 Proposed Rate: ${application.proposedRate}');
+    print('📝 Portfolio Links: ${application.portfolioLinks}');
+    
     state = state.copyWith(isSubmitting: true, error: null);
 
     final result = await submitApplicationUseCase(application);
 
     return result.fold(
       (failure) {
+        print('❌ Failed to submit application: ${failure.error}');
         state = state.copyWith(
           isSubmitting: false,
           error: failure.error,
@@ -74,6 +82,7 @@ class ApplicationViewModel extends StateNotifier<ApplicationState> {
         return false;
       },
       (application) {
+        print('✅ Application submitted successfully: ${application.id}');
         state = state.copyWith(
           isSubmitting: false,
           currentApplication: application,
@@ -86,18 +95,21 @@ class ApplicationViewModel extends StateNotifier<ApplicationState> {
   }
 
   Future<void> getMyApplications() async {
+    print('🔄 getMyApplications called');
     state = state.copyWith(isLoading: true, error: null);
 
     final result = await getMyApplicationsUseCase(NoParams());
 
     result.fold(
       (failure) {
+        print('❌ Failed to get applications: ${failure.error}');
         state = state.copyWith(
           isLoading: false,
           error: failure.error,
         );
       },
       (applications) {
+        print('✅ Got ${applications.length} applications');
         state = state.copyWith(
           isLoading: false,
           myApplications: applications,
