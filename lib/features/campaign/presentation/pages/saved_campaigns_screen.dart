@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:influcollb_app/app/theme/app_colors.dart';
 import 'package:influcollb_app/app/theme/app_text_styles.dart';
-import 'package:influcollb_app/features/campaign/presentation/view_model/campaign_view_model.dart';
+import 'package:influcollb_app/features/campaign/presentation/view_model/campaign_providers.dart';
 import 'package:influcollb_app/features/campaign/presentation/widgets/campaign_card.dart';
 
 class SavedCampaignsScreen extends ConsumerStatefulWidget {
   const SavedCampaignsScreen({super.key});
 
   @override
-  ConsumerState<SavedCampaignsScreen> createState() => _SavedCampaignsScreenState();
+  ConsumerState<SavedCampaignsScreen> createState() =>
+      _SavedCampaignsScreenState();
 }
 
 class _SavedCampaignsScreenState extends ConsumerState<SavedCampaignsScreen> {
@@ -61,7 +62,9 @@ class _SavedCampaignsScreenState extends ConsumerState<SavedCampaignsScreen> {
                       campaign: campaign,
                       isSaved: true, // Always true here
                       onSave: () {
-                        ref.read(campaignViewModelProvider.notifier).toggleSave(campaign.id);
+                        ref
+                            .read(campaignViewModelProvider.notifier)
+                            .toggleSave(campaign.id);
                       },
                     );
                   },
