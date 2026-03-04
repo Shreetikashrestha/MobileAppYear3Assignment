@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import 'package:influcollb_app/core/error/failures.dart';
+import 'package:influcollb_app/core/error/failure.dart';
 import 'package:influcollb_app/features/auth/domain/entities/auth_entity.dart';
 import 'package:influcollb_app/features/auth/domain/repositories/auth_repository.dart';
 
