@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:influcollb_app/core/services/camera/camera_service.dart';
 
 class ProfilePicturePicker extends StatefulWidget {
@@ -12,6 +11,7 @@ class ProfilePicturePicker extends StatefulWidget {
     this.currentImageUrl,
     required this.onImageSelected,
   });
+  
 
   @override
   State<ProfilePicturePicker> createState() => _ProfilePicturePickerState();
