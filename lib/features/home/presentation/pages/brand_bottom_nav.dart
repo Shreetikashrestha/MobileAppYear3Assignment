@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:influcollb_app/features/home/presentation/pages/brand_home_screen.dart';
-import 'package:influcollb_app/features/home/presentation/pages/brand_dashboard_screen.dart';
-import 'package:influcollb_app/features/messages/presentation/pages/messages_screen.dart';
+import 'package:influcollb_app/features/home/presentation/pages/enhanced_brand_dashboard_screen.dart';
+import 'package:influcollb_app/features/messages/presentation/pages/conversations_list_screen.dart';
 import 'package:influcollb_app/features/profile/presentation/pages/profile_screen.dart';
 
 class BrandBottomNav extends StatefulWidget {
@@ -15,8 +15,8 @@ class _BrandBottomNavState extends State<BrandBottomNav> {
   int _currentIndex = 0;
   final List<Widget> _screens = const [
     BrandHomeScreen(),
-    BrandDashboardScreen(),
-    MessagesScreen(),
+    EnhancedBrandDashboardScreen(),
+    ConversationsListScreen(),
     ProfileScreen(),
   ];
 
