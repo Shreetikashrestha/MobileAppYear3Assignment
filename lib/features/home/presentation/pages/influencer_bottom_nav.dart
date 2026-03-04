@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:influcollb_app/features/home/presentation/pages/influencer_dashboard_screen.dart';
-import 'package:influcollb_app/features/messages/presentation/pages/messages_screen.dart';
+import 'package:influcollb_app/features/messages/presentation/pages/conversations_list_screen.dart';
 import 'package:influcollb_app/features/profile/presentation/pages/profile_screen.dart';
 import 'package:influcollb_app/features/discover/presentation/pages/search_screen.dart';
 
@@ -16,7 +16,7 @@ class _InfluencerBottomNavState extends State<InfluencerBottomNav> {
   final List<Widget> _screens = const [
     InfluencerDashboardScreen(),
     SearchScreen(),
-    MessagesScreen(),
+    ConversationsListScreen(), // Changed from MessagesScreen to ConversationsListScreen
     ProfileScreen(),
   ];
 
