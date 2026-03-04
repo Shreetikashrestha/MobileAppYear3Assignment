@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:influcollb_app/core/providers/api_client_provider.dart';
+import 'package:influcollb_app/core/providers/api_provider.dart';
 import 'package:influcollb_app/features/application/data/datasources/application_remote_datasource.dart';
 import 'package:influcollb_app/features/application/data/repositories/application_repository_impl.dart';
 import 'package:influcollb_app/features/application/domain/repositories/application_repository.dart';
