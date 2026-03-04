@@ -23,17 +23,15 @@ class _SplashScreenState extends State<SplashScreen> {
     final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
     final bool onboardingCompleted =
         prefs.getBool('onboardingCompleted') ?? false;
-    final String? role = prefs.getString('userRole');
+    final bool? isInfluencer = prefs.getBool('isInfluencer');
 
     if (!mounted) return;
 
-    if (isLoggedIn && role != null) {
-      if (role == 'influencer') {
+    if (isLoggedIn && isInfluencer != null) {
+      if (isInfluencer) {
         Navigator.pushReplacementNamed(context, '/influencerDashboard');
-      } else if (role == 'brand') {
-        Navigator.pushReplacementNamed(context, '/brandDashboard');
       } else {
-        Navigator.pushReplacementNamed(context, '/login');
+        Navigator.pushReplacementNamed(context, '/brandDashboard');
       }
     } else if (!onboardingCompleted) {
       Navigator.pushReplacementNamed(context, '/onboarding1');
