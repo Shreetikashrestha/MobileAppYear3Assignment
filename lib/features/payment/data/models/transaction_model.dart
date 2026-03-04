@@ -2,28 +2,17 @@ import '../../domain/entities/transaction_entity.dart';
 
 class TransactionModel extends TransactionEntity {
   const TransactionModel({
-    required String id,
-    String? campaignTitle,
-    required String brandName,
-    String? influencerName,
-    required double amount,
-    required double netAmount,
-    required String type,
-    required String status,
-    String? description,
-    required DateTime createdAt,
-  }) : super(
-          id: id,
-          campaignTitle: campaignTitle,
-          brandName: brandName,
-          influencerName: influencerName,
-          amount: amount,
-          netAmount: netAmount,
-          type: type,
-          status: status,
-          description: description,
-          createdAt: createdAt,
-        );
+    required super.id,
+    super.campaignTitle,
+    required super.brandName,
+    super.influencerName,
+    required super.amount,
+    required super.netAmount,
+    required super.type,
+    required super.status,
+    super.description,
+    required super.createdAt,
+  });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
