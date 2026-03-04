@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:influcollb_app/core/api/api_client.dart';
 import 'package:influcollb_app/core/api/api_endpoints.dart';
 import 'package:path/path.dart' as path;
@@ -37,7 +38,7 @@ class ImageUploadService {
 
       throw Exception('Failed to upload profile picture');
     } catch (e) {
-      print('Error uploading profile picture: $e');
+      debugPrint('Error uploading profile picture: $e');
       rethrow;
     }
   }
@@ -70,7 +71,7 @@ class ImageUploadService {
 
       throw Exception('Failed to upload campaign image');
     } catch (e) {
-      print('Error uploading campaign image: $e');
+      debugPrint('Error uploading campaign image: $e');
       rethrow;
     }
   }
@@ -107,7 +108,7 @@ class ImageUploadService {
 
       return uploadedUrls;
     } catch (e) {
-      print('Error uploading multiple images: $e');
+      debugPrint('Error uploading multiple images: $e');
       rethrow;
     }
   }
@@ -140,7 +141,7 @@ class ImageUploadService {
 
       throw Exception('Failed to upload video');
     } catch (e) {
-      print('Error uploading video: $e');
+      debugPrint('Error uploading video: $e');
       rethrow;
     }
   }
@@ -155,7 +156,7 @@ class ImageUploadService {
   bool validateImageFile(File file) {
     final extension = path.extension(file.path).toLowerCase();
     final validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
-    
+
     if (!validExtensions.contains(extension)) {
       return false;
     }
@@ -173,7 +174,7 @@ class ImageUploadService {
   bool validateVideoFile(File file) {
     final extension = path.extension(file.path).toLowerCase();
     final validExtensions = ['.mp4', '.mov', '.avi', '.mkv'];
-    
+
     if (!validExtensions.contains(extension)) {
       return false;
     }
