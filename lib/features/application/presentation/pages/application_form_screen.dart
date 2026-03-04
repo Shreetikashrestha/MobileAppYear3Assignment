@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:influcollb_app/core/services/storage/user_session_service.dart';
+import 'package:influcollb_app/core/providers/core_providers.dart';
 import 'package:influcollb_app/features/application/data/models/application_model.dart';
 import 'package:influcollb_app/features/application/presentation/view_model/application_providers.dart';
 
@@ -19,8 +19,7 @@ class ApplicationFormScreen extends ConsumerStatefulWidget {
       _ApplicationFormScreenState();
 }
 
-class _ApplicationFormScreenState
-    extends ConsumerState<ApplicationFormScreen> {
+class _ApplicationFormScreenState extends ConsumerState<ApplicationFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _coverLetterController = TextEditingController();
   final _proposedRateController = TextEditingController();
@@ -52,13 +51,13 @@ class _ApplicationFormScreenState
   }
 
   Future<void> _submitApplication() async {
-    if (!_formKey.currentState!.validate()) {
+    if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
       return;
     }
 
     // Get current user ID
     final userSession = ref.read(userSessionServiceProvider);
-    final userId = await userSession.getUserId();
+    final userId = userSession.getCurrentUserId();
 
     if (userId == null) {
       if (mounted) {
@@ -120,7 +119,7 @@ class _ApplicationFormScreenState
             children: [
               // Campaign Info
               Card(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
@@ -183,9 +182,6 @@ class _ApplicationFormScreenState
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a cover letter';
-                  }
-                  if (value.trim().length < 50) {
-                    return 'Cover letter must be at least 50 characters';
                   }
                   return null;
                 },
@@ -289,9 +285,8 @@ class _ApplicationFormScreenState
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: applicationState.isSubmitting
-                      ? null
-                      : _submitApplication,
+                  onPressed:
+                      applicationState.isSubmitting ? null : _submitApplication,
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
