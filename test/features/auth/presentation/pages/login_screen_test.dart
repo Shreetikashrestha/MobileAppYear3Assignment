@@ -7,7 +7,7 @@ import 'package:influcollb_app/features/auth/presentation/pages/login_screen.dar
 import 'package:influcollb_app/features/auth/domain/usecases/login_usecase.dart';
 import 'package:influcollb_app/features/auth/presentation/view_model/auth_providers.dart';
 import 'package:influcollb_app/features/auth/data/models/auth_api_model.dart';
-import 'package:influcollb_app/core/error/failures.dart';
+import 'package:influcollb_app/core/error/failure.dart';
 
 class MockLoginUseCase extends Mock implements LoginUseCase {}
 
