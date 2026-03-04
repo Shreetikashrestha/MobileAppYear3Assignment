@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:influcollb_app/core/services/storage/user_session_service.dart';
 import 'package:influcollb_app/core/providers/api_provider.dart';
+import 'package:influcollb_app/features/profile/presentation/view_model/profile_view_model.dart';
 
 import '../../../../../app/theme/app_colors.dart';
 import '../../../../../app/theme/app_text_styles.dart';
@@ -18,16 +21,28 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   bool _isLoading = false;
+  File? _profileImage;
+  String? _currentProfilePicUrl;
+  final ImagePicker _picker = ImagePicker();
 
   // Controllers
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _instagramController = TextEditingController();
   final TextEditingController _tiktokController = TextEditingController();
+  final TextEditingController _facebookController = TextEditingController();
   final TextEditingController _youtubeController = TextEditingController();
   final TextEditingController _twitterController = TextEditingController();
   final TextEditingController _twitchController = TextEditingController();
   final TextEditingController _amazonController = TextEditingController();
   final TextEditingController _websiteController = TextEditingController();
+  
+  // Platform-specific followers controllers
+  final TextEditingController _instagramFollowersController = TextEditingController();
+  final TextEditingController _tiktokFollowersController = TextEditingController();
+  final TextEditingController _facebookFollowersController = TextEditingController();
+
+  // Portfolio items
+  final List<Map<String, dynamic>> _portfolioItems = [];
 
   // Form data
   String? _selectedGender;
@@ -88,22 +103,166 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _bioController.dispose();
     _instagramController.dispose();
     _tiktokController.dispose();
+    _facebookController.dispose();
     _youtubeController.dispose();
     _twitterController.dispose();
     _twitchController.dispose();
     _amazonController.dispose();
     _websiteController.dispose();
+    _instagramFollowersController.dispose();
+    _tiktokFollowersController.dispose();
+    _facebookFollowersController.dispose();
     super.dispose();
   }
 
   Future<void> _loadCurrentData() async {
     setState(() => _isLoading = true);
-    final prefs = await SharedPreferences.getInstance();
-    final userSessionService = UserSessionService(prefs: prefs);
-
-    setState(() {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userSessionService = UserSessionService(prefs: prefs);
+      
+      // Load basic data from session
       _bioController.text = userSessionService.getCurrentUserBio() ?? '';
-      _isLoading = false;
+      _currentProfilePicUrl = userSessionService.getProfilePicture();
+      
+      // Fetch full profile from backend
+      final userId = userSessionService.getCurrentUserId();
+      if (userId != null) {
+        final apiService = ref.read(apiServiceProvider);
+        final profileData = await apiService.getUserProfile(userId: userId);
+        
+        if (profileData != null) {
+          // Convert socialAccounts array to socialChannels object
+          Map<String, dynamic> socialChannels = {};
+          final socialAccounts = profileData['socialAccounts'] as List<dynamic>?;
+          if (socialAccounts != null) {
+            for (final account in socialAccounts) {
+              final platform = account['platform'];
+              final handle = account['handle'];
+              final followers = account['followers'];
+              
+              if (platform != null && handle != null) {
+                socialChannels[platform] = handle;
+                if (followers != null) {
+                  socialChannels['${platform}Followers'] = followers.toString();
+                }
+              }
+            }
+          } else {
+            // Fallback to old format if available
+            socialChannels = profileData['socialChannels'] ?? {};
+          }
+          
+          setState(() {
+            _bioController.text = profileData['bio'] ?? '';
+            _selectedGender = profileData['gender'];
+            if (profileData['dateOfBirth'] != null) {
+              _selectedDateOfBirth = DateTime.parse(profileData['dateOfBirth']);
+            }
+            _selectedEthnicity = profileData['ethnicity'];
+            _selectedLanguage = profileData['language'];
+            
+            // Load social channels
+            _instagramController.text = socialChannels['instagram'] ?? '';
+            _tiktokController.text = socialChannels['tiktok'] ?? '';
+            _facebookController.text = socialChannels['facebook'] ?? '';
+            _youtubeController.text = socialChannels['youtube'] ?? '';
+            _twitterController.text = socialChannels['twitter'] ?? '';
+            _twitchController.text = socialChannels['twitch'] ?? '';
+            _amazonController.text = socialChannels['amazonStorefront'] ?? '';
+            _websiteController.text = socialChannels['website'] ?? '';
+            _instagramFollowersController.text = socialChannels['instagramFollowers'] ?? '';
+            _tiktokFollowersController.text = socialChannels['tiktokFollowers'] ?? '';
+            _facebookFollowersController.text = socialChannels['facebookFollowers'] ?? '';
+            
+            // Load content categories
+            final categories = profileData['categories'] ?? profileData['contentCategories'];
+            if (categories != null) {
+              _selectedCategories.addAll(List<String>.from(categories));
+            }
+            
+            _currentProfilePicUrl = profileData['profilePicture'];
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading profile data: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _pickProfileImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        setState(() {
+          _profileImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking image: $e')),
+        );
+      }
+    }
+  }
+
+  Future<String?> _uploadProfileImage() async {
+    if (_profileImage == null) return null;
+
+    try {
+      // Upload profile image using the profile view model
+      final result = await ref
+          .read(profileViewModelProvider.notifier)
+          .uploadProfile(_profileImage!);
+      
+      debugPrint('Profile image uploaded successfully');
+      // The upload returns the remote URL, not the local path
+      return result;
+    } catch (e) {
+      debugPrint('Error uploading profile image: $e');
+      return null;
+    }
+  }
+
+  void _addPortfolioItem() {
+    showDialog(
+      context: context,
+      builder: (context) => _PortfolioDialog(
+        onSave: (item) {
+          setState(() {
+            _portfolioItems.add(item);
+          });
+        },
+      ),
+    );
+  }
+
+  void _editPortfolioItem(int index) {
+    showDialog(
+      context: context,
+      builder: (context) => _PortfolioDialog(
+        initialItem: _portfolioItems[index],
+        onSave: (item) {
+          setState(() {
+            _portfolioItems[index] = item;
+          });
+        },
+      ),
+    );
+  }
+
+  void _deletePortfolioItem(int index) {
+    setState(() {
+      _portfolioItems.removeAt(index);
     });
   }
 
@@ -119,31 +278,50 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         throw Exception('User not logged in');
       }
 
-      final apiService = ref.read(apiServiceProvider);
+      // Upload profile image if changed
+      String? profilePicUrl;
+      if (_profileImage != null) {
+        profilePicUrl = await _uploadProfileImage();
+        if (profilePicUrl != null) {
+          await userSessionService.updateProfilePicture(profilePicUrl);
+        }
+      }
 
-      await apiService.updateUserProfile(
-        userId: userId,
-        bio: _bioController.text.trim(),
-        gender: _selectedGender,
-        dateOfBirth: _selectedDateOfBirth?.toIso8601String(),
-        ethnicity: _selectedEthnicity,
-        language: _selectedLanguage,
-        socialChannels: {
-          'instagram': _instagramController.text.trim(),
-          'tiktok': _tiktokController.text.trim(),
-          'youtube': _youtubeController.text.trim(),
-          'twitter': _twitterController.text.trim(),
-          'twitch': _twitchController.text.trim(),
-          'amazonStorefront': _amazonController.text.trim(),
-          'website': _websiteController.text.trim(),
-        },
-        contentCategories: _selectedCategories.toList(),
-      );
+      // Save to local storage (since backend doesn't have these fields)
+      await prefs.setString('profile_bio_$userId', _bioController.text.trim());
+      await prefs.setString(
+          'profile_categories_$userId', _selectedCategories.join(','));
+      await prefs.setString(
+          'profile_languages_$userId', 
+          _selectedLanguage != null ? _selectedLanguage! : '');
+
+      // Save social channels
+      final socialChannelsMap = {
+        'instagram': _instagramController.text.trim(),
+        'tiktok': _tiktokController.text.trim(),
+        'facebook': _facebookController.text.trim(),
+        'youtube': _youtubeController.text.trim(),
+        'twitter': _twitterController.text.trim(),
+        'twitch': _twitchController.text.trim(),
+        'amazonStorefront': _amazonController.text.trim(),
+        'website': _websiteController.text.trim(),
+        'instagramFollowers': _instagramFollowersController.text.trim(),
+        'tiktokFollowers': _tiktokFollowersController.text.trim(),
+        'facebookFollowers': _facebookFollowersController.text.trim(),
+      };
+      
+      // Convert map to query string for storage
+      final socialChannelsQuery = socialChannelsMap.entries
+          .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+          .join('&');
+      await prefs.setString('profile_social_channels_$userId', socialChannelsQuery);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully!')),
         );
+        // Reload profile data to show updated values
+        await _loadCurrentData();
         Navigator.pop(context, true);
       }
     } catch (e) {
@@ -158,7 +336,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   void _nextPage() {
-    if (_currentPage < 3) {
+    if (_currentPage < 4) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -202,9 +380,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     onPageChanged: (page) =>
                         setState(() => _currentPage = page),
                     children: [
+                      _buildProfileImageSection(),
                       _buildBioSection(),
                       _buildDemographicsSection(),
                       _buildSocialChannelsSection(),
+                      _buildPortfolioSection(),
                       _buildContentCategoriesSection(),
                     ],
                   ),
@@ -219,11 +399,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
-        children: List.generate(4, (index) {
+        children: List.generate(6, (index) {
           return Expanded(
             child: Container(
               height: 4,
-              margin: EdgeInsets.only(right: index < 3 ? 8 : 0),
+              margin: EdgeInsets.only(right: index < 5 ? 8 : 0),
               decoration: BoxDecoration(
                 color: index <= _currentPage
                     ? AppColors.primary
@@ -322,13 +502,29 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 24),
-          _buildSocialInput(
-              Icons.camera_alt, 'Add Instagram', _instagramController),
+          _buildSocialInputWithFollowers(
+            Icons.camera_alt,
+            'Instagram Handle',
+            _instagramController,
+            _instagramFollowersController,
+          ),
           const SizedBox(height: 12),
-          _buildSocialInput(Icons.music_note, 'Add Tiktok', _tiktokController),
+          _buildSocialInputWithFollowers(
+            Icons.music_note,
+            'TikTok Handle',
+            _tiktokController,
+            _tiktokFollowersController,
+          ),
+          const SizedBox(height: 12),
+          _buildSocialInputWithFollowers(
+            Icons.facebook,
+            'Facebook Handle',
+            _facebookController,
+            _facebookFollowersController,
+          ),
           const SizedBox(height: 12),
           _buildSocialInput(
-              Icons.play_circle_outline, 'Add Youtube', _youtubeController),
+              Icons.play_circle_outline, 'Add YouTube', _youtubeController),
           const SizedBox(height: 12),
           _buildSocialInput(
               Icons.flutter_dash, 'Add Twitter', _twitterController),
@@ -340,6 +536,55 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               Icons.shopping_bag, 'Add Amazon Storefront', _amazonController),
           const SizedBox(height: 12),
           _buildSocialInput(Icons.link, 'Add Website', _websiteController),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSocialInputWithFollowers(
+    IconData icon,
+    String label,
+    TextEditingController handleController,
+    TextEditingController followersController,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: handleController,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: label,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: followersController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              labelText: 'Followers Count',
+              prefixIcon: const Icon(Icons.people),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+          ),
         ],
       ),
     );
@@ -451,7 +696,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           children: [
             Text(
               _selectedDateOfBirth != null
-                  ? '${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}'
+                  ? '${_selectedDateOfBirth?.day}/${_selectedDateOfBirth?.month}/${_selectedDateOfBirth?.year}'
                   : 'Select a date from the date picker',
               style: TextStyle(
                 color: _selectedDateOfBirth != null
@@ -493,6 +738,132 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     );
   }
 
+  Widget _buildProfileImageSection() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text(
+            'Profile Picture',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 24),
+          GestureDetector(
+            onTap: _pickProfileImage,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey[200],
+                image: _profileImage != null
+                    ? DecorationImage(
+                        image: FileImage(_profileImage!),
+                        fit: BoxFit.cover,
+                      )
+                    : (_currentProfilePicUrl != null && _currentProfilePicUrl!.isNotEmpty)
+                        ? DecorationImage(
+                            image: NetworkImage(_currentProfilePicUrl!),
+                            fit: BoxFit.cover,
+                            onError: (exception, stackTrace) {
+                              debugPrint('Error loading profile picture: $exception');
+                            },
+                          )
+                        : null,
+              ),
+              child: _profileImage == null && (_currentProfilePicUrl == null || _currentProfilePicUrl!.isEmpty)
+                  ? const Icon(Icons.camera_alt, size: 50, color: Colors.grey)
+                  : null,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextButton.icon(
+            onPressed: _pickProfileImage,
+            icon: const Icon(Icons.edit),
+            label: const Text('Change Profile Picture'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPortfolioSection() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Portfolio',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                onPressed: _addPortfolioItem,
+                icon: const Icon(Icons.add_circle, color: AppColors.primary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (_portfolioItems.isEmpty)
+            Center(
+              child: Column(
+                children: [
+                  Icon(Icons.work_outline, size: 64, color: Colors.grey[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No portfolio items yet',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: _addPortfolioItem,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Portfolio Item'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _portfolioItems.length,
+              itemBuilder: (context, index) {
+                final item = _portfolioItems[index];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    title: Text(item['title'] ?? ''),
+                    subtitle: Text(item['description'] ?? ''),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () => _editPortfolioItem(index),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deletePortfolioItem(index),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildNavigationButtons() {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -500,7 +871,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -536,13 +907,127 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 ),
               ),
               child: Text(
-                _currentPage == 3 ? 'Save Profile' : 'Continue',
+                _currentPage == 5 ? 'Save Profile' : 'Continue',
                 style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+
+class _PortfolioDialog extends StatefulWidget {
+  final Map<String, dynamic>? initialItem;
+  final Function(Map<String, dynamic>) onSave;
+
+  const _PortfolioDialog({
+    this.initialItem,
+    required this.onSave,
+  });
+
+  @override
+  State<_PortfolioDialog> createState() => _PortfolioDialogState();
+}
+
+class _PortfolioDialogState extends State<_PortfolioDialog> {
+  late TextEditingController _titleController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _tagsController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(
+      text: widget.initialItem?['title'] ?? '',
+    );
+    _descriptionController = TextEditingController(
+      text: widget.initialItem?['description'] ?? '',
+    );
+    _tagsController = TextEditingController(
+      text: (widget.initialItem?['tags'] as List?)?.join(', ') ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _tagsController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.initialItem == null ? 'Add Portfolio Item' : 'Edit Portfolio Item'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descriptionController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _tagsController,
+              decoration: const InputDecoration(
+                labelText: 'Tags (comma separated)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (_titleController.text.trim().isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Please enter a title')),
+              );
+              return;
+            }
+
+            final tags = _tagsController.text
+                .split(',')
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+
+            widget.onSave({
+              'title': _titleController.text.trim(),
+              'description': _descriptionController.text.trim(),
+              'tags': tags,
+            });
+
+            Navigator.pop(context);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+          ),
+          child: const Text('Save'),
+        ),
+      ],
     );
   }
 }
