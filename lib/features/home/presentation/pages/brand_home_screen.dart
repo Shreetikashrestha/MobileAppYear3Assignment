@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:influcollb_app/core/api/api_service.dart';
 import 'package:influcollb_app/core/providers/api_provider.dart';
 import 'package:influcollb_app/features/campaign/data/models/campaign_model.dart';
+import 'package:influcollb_app/features/notification/presentation/pages/notifications_screen.dart';
+import 'package:influcollb_app/features/analytics/presentation/pages/analytics_screen.dart';
 import 'create_campaign_screen.dart';
 import 'find_influencer_screen.dart';
 import '../../../campaign/presentation/pages/campaign_detail_screen.dart';
@@ -20,8 +21,10 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
   String? _error;
 
   int get _totalCampaigns => _campaigns.length;
-  int get _totalInfluencers => _campaigns.fold(0, (sum, campaign) => sum + campaign.applicantsCount);
-  double get _totalBudget => _campaigns.fold(0.0, (sum, campaign) => sum + campaign.budgetMax);
+  int get _totalInfluencers =>
+      _campaigns.fold(0, (sum, campaign) => sum + campaign.applicantsCount);
+  double get _totalBudget =>
+      _campaigns.fold(0.0, (sum, campaign) => sum + campaign.budgetMax);
 
   @override
   void initState() {
@@ -87,9 +90,33 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-                              onPressed: () {},
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.analytics_outlined,
+                                      color: Colors.white),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const AnalyticsScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.notifications_outlined,
+                                      color: Colors.white),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const NotificationsScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -97,7 +124,8 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
 
                       // Stats cards
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         child: Row(
                           children: [
                             _buildStatCard(
@@ -139,7 +167,8 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                             final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const CreateCampaignScreen(),
+                                builder: (context) =>
+                                    const CreateCampaignScreen(),
                               ),
                             );
                             if (result == true) {
@@ -159,7 +188,8 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const FindInfluencerScreen(),
+                                builder: (context) =>
+                                    const FindInfluencerScreen(),
                               ),
                             );
                           },
@@ -173,7 +203,8 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
               // Active Campaigns section
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -222,7 +253,8 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.campaign, size: 64, color: Colors.grey[300]),
+                                    Icon(Icons.campaign,
+                                        size: 64, color: Colors.grey[300]),
                                     const SizedBox(height: 16),
                                     Text(
                                       'No campaigns yet',
@@ -237,14 +269,16 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                                         final result = await Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => const CreateCampaignScreen(),
+                                            builder: (context) =>
+                                                const CreateCampaignScreen(),
                                           ),
                                         );
                                         if (result == true) {
                                           _loadCampaigns();
                                         }
                                       },
-                                      child: const Text('Create Your First Campaign'),
+                                      child: const Text(
+                                          'Create Your First Campaign'),
                                     ),
                                   ],
                                 ),
@@ -253,11 +287,15 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                           : SliverList(
                               delegate: SliverChildBuilderDelegate(
                                 (context, index) {
-                                  final campaign = _campaigns.where((c) => c.status == 'active').toList();
+                                  final campaign = _campaigns
+                                      .where((c) => c.status == 'active')
+                                      .toList();
                                   if (index >= campaign.length) return null;
                                   return _buildCampaignCard(campaign[index]);
                                 },
-                                childCount: _campaigns.where((c) => c.status == 'active').length,
+                                childCount: _campaigns
+                                    .where((c) => c.status == 'active')
+                                    .length,
                               ),
                             ),
             ],
@@ -272,7 +310,7 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -315,7 +353,7 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -361,7 +399,7 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -383,7 +421,8 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(8),
@@ -406,13 +445,6 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
               const SizedBox(width: 4),
               Text(
                 '${campaign.applicantsCount} influencers',
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
-              ),
-              const SizedBox(width: 16),
-              Icon(Icons.trending_up, size: 16, color: Colors.grey[600]),
-              const SizedBox(width: 4),
-              Text(
-                '${(campaign.applicantsCount * 500)} reach',
                 style: TextStyle(color: Colors.grey[600], fontSize: 14),
               ),
             ],
@@ -451,14 +483,16 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CampaignDetailScreen(campaign: campaign),
+                    builder: (context) =>
+                        CampaignDetailScreen(campaign: campaign),
                   ),
                 );
               },
               style: TextButton.styleFrom(
                 backgroundColor: Colors.grey[800],
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
