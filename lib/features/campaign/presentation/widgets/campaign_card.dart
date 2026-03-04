@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../data/models/campaign_model.dart';
-import '../../../../../app/theme/app_text_styles.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'campaign_detail_modal.dart';
-import '../view_model/campaign_view_model.dart';
 import '../pages/campaign_detail_screen.dart';
 
 class CampaignCard extends StatelessWidget {
@@ -44,7 +40,8 @@ class CampaignCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: const Color(0xFF0F172A), // Dark Navy/Black
                   borderRadius: BorderRadius.circular(12),
@@ -64,8 +61,8 @@ class CampaignCard extends StatelessWidget {
                   Container(
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF8FAFC),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -78,18 +75,6 @@ class CampaignCard extends StatelessWidget {
                         color: isSaved ? Colors.pink : Colors.grey[400],
                         padding: EdgeInsets.zero,
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Icon(Icons.bookmark_border, size: 20, color: Colors.grey[400]),
                     ),
                   ),
                 ],
@@ -118,17 +103,21 @@ class CampaignCard extends StatelessWidget {
           const SizedBox(height: 24),
           Row(
             children: [
-              _buildInfoItem(Icons.payments_outlined, 'NPR ${campaign.budgetMin.toInt()}'),
+              _buildInfoItem(
+                  Icons.payments_outlined, 'NPR ${campaign.budgetMin.toInt()}'),
               const Spacer(),
-              _buildInfoItem(Icons.calendar_today_outlined, 'Due: ${campaign.formattedDeadline.replaceAll('-', '/')}'),
+              _buildInfoItem(Icons.calendar_today_outlined,
+                  'Due: ${campaign.formattedDeadline.replaceAll('-', '/')}'),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              _buildInfoItem(Icons.location_on_outlined, campaign.location.split(',')[0]),
+              _buildInfoItem(
+                  Icons.location_on_outlined, campaign.location.split(',')[0]),
               const Spacer(),
-              _buildInfoItem(Icons.people_outline, '${campaign.applicantsCount} applicants'),
+              _buildInfoItem(Icons.people_outline,
+                  '${campaign.applicantsCount} applicants'),
             ],
           ),
           const SizedBox(height: 32),
@@ -149,14 +138,16 @@ class CampaignCard extends StatelessWidget {
                 ],
               ),
               child: ElevatedButton(
-                onPressed: onViewDetails ?? () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CampaignDetailScreen(campaign: campaign),
-                    ),
-                  );
-                },
+                onPressed: onViewDetails ??
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              CampaignDetailScreen(campaign: campaign),
+                        ),
+                      );
+                    },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
