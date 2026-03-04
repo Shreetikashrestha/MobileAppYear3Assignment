@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:influcollb_app/core/api/api_service.dart';
 import 'package:influcollb_app/core/providers/api_provider.dart';
 import 'package:influcollb_app/features/campaign/data/models/campaign_model.dart';
 import 'campaign_applicants_screen.dart';
@@ -96,19 +95,19 @@ class _BrandApplicationsScreenState
 
   Widget _buildCampaignCard(Campaign campaign) {
     return GestureDetector(
-          onTap: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CampaignApplicantsScreen(
-                  campaign: campaign,
-                ),
-              ),
-            );
-            if (result == true) {
-              _loadCampaigns();
-            }
-          },
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CampaignApplicantsScreen(
+              campaign: campaign,
+            ),
+          ),
+        );
+        if (result == true) {
+          _loadCampaigns();
+        }
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
