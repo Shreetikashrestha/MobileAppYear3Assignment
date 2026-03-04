@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
-import 'package:influcollb_app/core/error/failures.dart';
+import 'package:influcollb_app/core/error/failure.dart';
 import 'package:influcollb_app/core/usecases/usecase.dart';
 import '../repositories/profile_repository.dart';
 
