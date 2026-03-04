@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:influcollb_app/app/theme/app_colors.dart';
 import 'package:influcollb_app/app/theme/app_text_styles.dart';
-import 'package:influcollb_app/features/campaign/presentation/view_model/campaign_view_model.dart';
+import 'package:influcollb_app/features/campaign/presentation/view_model/campaign_providers.dart';
 import 'package:influcollb_app/features/campaign/presentation/widgets/campaign_card.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
@@ -35,11 +35,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(campaignViewModelProvider);
     final query = searchController.text.toLowerCase();
-    
+
     final filteredCampaigns = state.campaigns.where((campaign) {
       return campaign.title.toLowerCase().contains(query) ||
-             campaign.category.toLowerCase().contains(query) ||
-             campaign.description.toLowerCase().contains(query);
+          campaign.category.toLowerCase().contains(query) ||
+          campaign.description.toLowerCase().contains(query);
     }).toList();
 
     return Scaffold(
@@ -77,7 +77,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           borderRadius: BorderRadius.circular(25),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.shadowColor.withValues(alpha: 0.1),
+                              color:
+                                  AppColors.shadowColor.withValues(alpha: 0.1),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -120,17 +121,24 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           : filteredCampaigns.isEmpty
                               ? _buildNoResults()
                               : RefreshIndicator(
-                                  onRefresh: () => ref.read(campaignViewModelProvider.notifier).loadCampaigns(),
+                                  onRefresh: () => ref
+                                      .read(campaignViewModelProvider.notifier)
+                                      .loadCampaigns(),
                                   child: ListView.builder(
-                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20),
                                     itemCount: filteredCampaigns.length,
                                     itemBuilder: (context, index) {
                                       final campaign = filteredCampaigns[index];
-                                      final isSaved = state.savedCampaigns.any((c) => c.id == campaign.id);
+                                      final isSaved = state.savedCampaigns
+                                          .any((c) => c.id == campaign.id);
                                       return CampaignCard(
                                         campaign: campaign,
                                         isSaved: isSaved,
-                                        onSave: () => ref.read(campaignViewModelProvider.notifier).toggleSave(campaign.id),
+                                        onSave: () => ref
+                                            .read(campaignViewModelProvider
+                                                .notifier)
+                                            .toggleSave(campaign.id),
                                       );
                                     },
                                   ),
@@ -174,8 +182,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.shadowColor
-                            .withValues(alpha: 0.05),
+                        color: AppColors.shadowColor.withValues(alpha: 0.05),
                         blurRadius: 5,
                       ),
                     ],
