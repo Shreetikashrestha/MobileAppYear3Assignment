@@ -1,38 +1,23 @@
 import 'package:intl/intl.dart';
+import 'package:influcollb_app/features/campaign/domain/entities/campaign_entity.dart';
 
-class Campaign {
-  final String id;
-  final String title;
-  final String description;
-  final String brandName;
-  final String category;
-  final double budgetMin;
-  final double budgetMax;
-  final DateTime deadline;
-  final String location;
-  final List<String> requirements;
-  final List<String> deliverables;
-  final String creatorId;
-  final int applicantsCount;
-  final String status;
-  final DateTime createdAt;
-
-  Campaign({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.brandName,
-    required this.category,
-    required this.budgetMin,
-    required this.budgetMax,
-    required this.deadline,
-    required this.location,
-    required this.requirements,
-    required this.deliverables,
-    required this.creatorId,
-    required this.applicantsCount,
-    required this.status,
-    required this.createdAt,
+class Campaign extends CampaignEntity {
+  const Campaign({
+    required super.id,
+    required super.title,
+    required super.description,
+    required super.brandName,
+    required super.category,
+    required super.budgetMin,
+    required super.budgetMax,
+    required super.deadline,
+    required super.location,
+    required super.requirements,
+    required super.deliverables,
+    required super.creatorId,
+    required super.applicantsCount,
+    required super.status,
+    required super.createdAt,
   });
 
   factory Campaign.fromJson(Map<String, dynamic> json) {
