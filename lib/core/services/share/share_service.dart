@@ -1,5 +1,5 @@
+import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:io';
 
 /// Share Service for sharing content
 class ShareService {
@@ -28,7 +28,7 @@ Download InfluCollab app to apply!
         subject: 'Campaign: $campaignTitle',
       );
     } catch (e) {
-      print('Error sharing campaign: $e');
+      debugPrint('Error sharing campaign: $e');
       rethrow;
     }
   }
@@ -56,7 +56,7 @@ Download the app now!
         subject: '$userName - InfluCollab Profile',
       );
     } catch (e) {
-      print('Error sharing profile: $e');
+      debugPrint('Error sharing profile: $e');
       rethrow;
     }
   }
@@ -83,7 +83,7 @@ I'm excited to collaborate! 🚀
         subject: 'Application Accepted!',
       );
     } catch (e) {
-      print('Error sharing success: $e');
+      debugPrint('Error sharing success: $e');
       rethrow;
     }
   }
@@ -91,7 +91,7 @@ I'm excited to collaborate! 🚀
   /// Share app download link
   Future<void> shareAppDownload() async {
     try {
-      final text = '''
+      const text = '''
 📱 Join me on InfluCollab!
 
 Connect brands with influencers for amazing collaborations.
@@ -108,7 +108,7 @@ Android: [Play Store Link]
         subject: 'Join InfluCollab',
       );
     } catch (e) {
-      print('Error sharing app: $e');
+      debugPrint('Error sharing app: $e');
       rethrow;
     }
   }
@@ -127,7 +127,7 @@ Android: [Play Store Link]
         subject: subject,
       );
     } catch (e) {
-      print('Error sharing with image: $e');
+      debugPrint('Error sharing with image: $e');
       rethrow;
     }
   }
@@ -146,7 +146,7 @@ Android: [Play Store Link]
         subject: subject,
       );
     } catch (e) {
-      print('Error sharing multiple files: $e');
+      debugPrint('Error sharing multiple files: $e');
       rethrow;
     }
   }
@@ -162,7 +162,7 @@ Android: [Play Store Link]
         subject: subject,
       );
     } catch (e) {
-      print('Error sharing text: $e');
+      debugPrint('Error sharing text: $e');
       rethrow;
     }
   }
@@ -177,16 +177,16 @@ Android: [Play Store Link]
         text,
         subject: subject,
       );
-      
+
       if (result.status == ShareResultStatus.success) {
-        print('Shared successfully');
+        debugPrint('Shared successfully');
       } else if (result.status == ShareResultStatus.dismissed) {
-        print('Share dismissed');
+        debugPrint('Share dismissed');
       }
-      
+
       return result;
     } catch (e) {
-      print('Error sharing with result: $e');
+      debugPrint('Error sharing with result: $e');
       return null;
     }
   }
