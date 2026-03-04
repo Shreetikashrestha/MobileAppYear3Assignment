@@ -7,7 +7,6 @@ import 'package:influcollb_app/features/onboarding/presentation/pages/onboarding
 import 'package:influcollb_app/features/onboarding/presentation/pages/onboarding2_screen.dart';
 import 'package:influcollb_app/features/onboarding/presentation/pages/onboarding3_screen.dart';
 import 'package:influcollb_app/features/home/presentation/pages/influencer_bottom_nav.dart';
-import 'package:influcollb_app/features/home/presentation/pages/brand_bottom_nav.dart';
 import 'package:influcollb_app/features/campaign/data/models/campaign_model.dart';
 import 'package:influcollb_app/features/campaign/presentation/pages/campaign_detail_screen.dart';
 import 'package:influcollb_app/features/home/presentation/pages/brand_dashboard_screen.dart';
