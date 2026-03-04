@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:influcollb_app/features/application/data/models/application_model.dart';
 import 'package:influcollb_app/features/application/presentation/view_model/application_providers.dart';
-import 'package:influcollb_app/features/application/presentation/widgets/application_card.dart';
 
 class CampaignApplicationsScreen extends ConsumerStatefulWidget {
   final String campaignId;
-  final String campaignTitle;
+  final String? campaignTitle;
 
   const CampaignApplicationsScreen({
     super.key,
     required this.campaignId,
-    required this.campaignTitle,
+    this.campaignTitle,
   });
 
   @override
@@ -66,23 +66,41 @@ class _CampaignApplicationsScreenState
             .toList();
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Applications', style: TextStyle(fontSize: 18)),
-            Text(
-              widget.campaignTitle,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            const Text(
+              'Applications',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
+            if (widget.campaignTitle != null)
+              Text(
+                widget.campaignTitle!,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.grey[600],
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
           ],
         ),
-        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.black),
             onPressed: () {
               ref
                   .read(applicationViewModelProvider.notifier)
@@ -93,9 +111,67 @@ class _CampaignApplicationsScreenState
       ),
       body: Column(
         children: [
+          // Statistics Card
+          Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildStatItem(
+                    'Total',
+                    applications.length.toString(),
+                    Colors.blue,
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: Colors.grey[300],
+                ),
+                Expanded(
+                  child: _buildStatItem(
+                    'Pending',
+                    applications
+                        .where((app) => app.status.toLowerCase() == 'pending')
+                        .length
+                        .toString(),
+                    Colors.orange,
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: Colors.grey[300],
+                ),
+                Expanded(
+                  child: _buildStatItem(
+                    'Accepted',
+                    applications
+                        .where((app) => app.status.toLowerCase() == 'accepted')
+                        .length
+                        .toString(),
+                    Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           // Filter Chips
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -129,6 +205,7 @@ class _CampaignApplicationsScreenState
               ),
             ),
           ),
+          const SizedBox(height: 16),
 
           // Applications List
           Expanded(
@@ -142,10 +219,14 @@ class _CampaignApplicationsScreenState
                             Icon(Icons.error_outline,
                                 size: 64, color: Colors.red[300]),
                             const SizedBox(height: 16),
-                            Text(
-                              applicationState.error!,
-                              style: const TextStyle(fontSize: 16),
-                              textAlign: TextAlign.center,
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 32),
+                              child: Text(
+                                applicationState.error!,
+                                style: const TextStyle(fontSize: 16),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                             const SizedBox(height: 16),
                             ElevatedButton.icon(
@@ -166,14 +247,26 @@ class _CampaignApplicationsScreenState
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.inbox_outlined,
-                                    size: 64, color: Colors.grey[400]),
+                                    size: 80, color: Colors.grey[300]),
                                 const SizedBox(height: 16),
                                 Text(
                                   _selectedFilter == 'all'
                                       ? 'No applications yet'
                                       : 'No $_selectedFilter applications',
                                   style: TextStyle(
-                                      fontSize: 18, color: Colors.grey[600]),
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Applications will appear here once influencers apply',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[500],
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ],
                             ),
@@ -186,20 +279,157 @@ class _CampaignApplicationsScreenState
                             },
                             child: ListView.builder(
                               itemCount: filteredApplications.length,
-                              padding: const EdgeInsets.only(bottom: 16),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
                               itemBuilder: (context, index) {
                                 final application = filteredApplications[index];
-                                return ApplicationCard(
-                                  application: application,
-                                  showCampaignInfo: false,
-                                  onTap: () =>
-                                      _showApplicationDetail(application),
-                                );
+                                return _buildApplicationCard(application);
                               },
                             ),
                           ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildApplicationCard(ApplicationModel application) {
+    final statusColor = application.status.toLowerCase() == 'accepted'
+        ? Colors.green
+        : application.status.toLowerCase() == 'rejected'
+            ? Colors.red
+            : Colors.orange;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _showApplicationDetail(application),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Avatar
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Colors.blue[100],
+                  child: Text(
+                    application.influencerName[0].toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              application.influencerName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              application.statusDisplay,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Rate: NPR ${application.proposedRate}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        application.coverLetter,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[500],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey[400],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -214,7 +444,7 @@ class _CampaignApplicationsScreenState
           _selectedFilter = value;
         });
       },
-      selectedColor: Theme.of(context).primaryColor.withOpacity(0.2),
+      selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
       checkmarkColor: Theme.of(context).primaryColor,
       labelStyle: TextStyle(
         color: isSelected ? Theme.of(context).primaryColor : Colors.grey[700],
@@ -234,7 +464,8 @@ class _ApplicationDetailSheet extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('${status == 'accepted' ? 'Accept' : 'Reject'} Application'),
+        title:
+            Text('${status == 'accepted' ? 'Accept' : 'Reject'} Application'),
         content: Text(
           'Are you sure you want to ${status == 'accepted' ? 'accept' : 'reject'} this application from ${application.influencerName}?',
         ),
@@ -246,8 +477,7 @@ class _ApplicationDetailSheet extends ConsumerWidget {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  status == 'accepted' ? Colors.green : Colors.red,
+              backgroundColor: status == 'accepted' ? Colors.green : Colors.red,
             ),
             child: Text(status == 'accepted' ? 'Accept' : 'Reject'),
           ),
@@ -264,7 +494,8 @@ class _ApplicationDetailSheet extends ConsumerWidget {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Application ${status == 'accepted' ? 'accepted' : 'rejected'} successfully'),
+              content: Text(
+                  'Application ${status == 'accepted' ? 'accepted' : 'rejected'} successfully'),
               backgroundColor: status == 'accepted' ? Colors.green : Colors.red,
             ),
           );
@@ -474,8 +705,11 @@ class _ApplicationDetailSheet extends ConsumerWidget {
         ...links.map((link) => Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: InkWell(
-                onTap: () {
-                  // TODO: Open link in browser
+                onTap: () async {
+                  final uri = Uri.parse(link);
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
                 },
                 child: Text(
                   link,
