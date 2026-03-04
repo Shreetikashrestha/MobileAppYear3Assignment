@@ -97,7 +97,7 @@ class _OnboardingScreen2State extends State<OnboardingScreen2> {
                         final userSessionService = UserSessionService(prefs: prefs);
                         await userSessionService.saveOnboardingData(
                             bio: descriptionController.text.trim());
-                        if (mounted) {
+                        if (context.mounted) {
                           Navigator.pushNamed(context, '/onboarding3');
                         }
                       },
