@@ -150,7 +150,7 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
                             Text(
                               selectedDate == null
                                   ? "Select your date of birth"
-                                  : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
+                                  : "${selectedDate?.day}/${selectedDate?.month}/${selectedDate?.year}",
                               style: TextStyle(
                                 color: selectedDate == null
                                     ? Colors.grey[600]
