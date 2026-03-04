@@ -18,7 +18,6 @@ class LocationPicker extends StatefulWidget {
 
 class _LocationPickerState extends State<LocationPicker> {
   final LocationService _locationService = LocationService();
-  Position? _currentPosition;
   bool _isLoading = false;
   String? _locationText;
 
@@ -37,7 +36,6 @@ class _LocationPickerState extends State<LocationPicker> {
       final position = await _locationService.getCurrentLocation();
       if (position != null) {
         setState(() {
-          _currentPosition = position;
           _locationText =
               'Lat: ${position.latitude.toStringAsFixed(4)}, Lng: ${position.longitude.toStringAsFixed(4)}';
           _isLoading = false;
@@ -110,10 +108,10 @@ class _LocationPickerState extends State<LocationPicker> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: Colors.green.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Colors.green.withOpacity(0.3),
+                    color: Colors.green.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -140,10 +138,10 @@ class _LocationPickerState extends State<LocationPicker> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Colors.grey.withOpacity(0.3),
+                    color: Colors.grey.withValues(alpha: 0.3),
                   ),
                 ),
                 child: const Row(
@@ -182,7 +180,9 @@ class _LocationPickerState extends State<LocationPicker> {
                         ),
                       )
                     : const Icon(Icons.my_location),
-                label: Text(_isLoading ? 'Getting Location...' : 'Use Current Location'),
+                label: Text(_isLoading
+                    ? 'Getting Location...'
+                    : 'Use Current Location'),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -198,6 +198,37 @@ class _LocationPickerState extends State<LocationPicker> {
                 fontSize: 12,
                 color: Colors.grey[600],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+// Dialog wrapper for LocationPicker
+class LocationPickerDialog extends StatelessWidget {
+  const LocationPickerDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children:  [
+            const Text(
+              'Select Location',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            LocationPicker(
+              onLocationSelected: (position) {
+                final locationString = '${position.latitude},${position.longitude}';
+                Navigator.of(context).pop(locationString);
+              },
             ),
           ],
         ),
