@@ -167,8 +167,77 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
                                   application: application,
                                   showCampaignInfo: true,
                                   onTap: () {
-                                    // Navigate to application detail screen
-                                    // TODO: Implement application detail screen
+                                    // Show application details in a bottom sheet
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                      ),
+                                      builder: (context) => DraggableScrollableSheet(
+                                        initialChildSize: 0.6,
+                                        minChildSize: 0.4,
+                                        maxChildSize: 0.9,
+                                        expand: false,
+                                        builder: (context, scrollController) {
+                                          return Container(
+                                            padding: const EdgeInsets.all(24),
+                                            child: ListView(
+                                              controller: scrollController,
+                                              children: [
+                                                Center(
+                                                  child: Container(
+                                                    width: 40,
+                                                    height: 4,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.grey[300],
+                                                      borderRadius: BorderRadius.circular(2),
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 24),
+                                                Text(
+                                                  'Application Details',
+                                                  style: const TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 24),
+                                                _buildDetailRow('Campaign', application.campaignTitle ?? 'N/A'),
+                                                const SizedBox(height: 16),
+                                                _buildDetailRow('Status', application.statusDisplay),
+                                                const SizedBox(height: 16),
+                                                _buildDetailRow('Proposed Rate', 'NPR ${application.proposedRate}'),
+                                                const SizedBox(height: 16),
+                                                _buildDetailRow('Cover Letter', application.coverLetter),
+                                                if (application.portfolioLinks.isNotEmpty) ...[
+                                                  const SizedBox(height: 16),
+                                                  const Text(
+                                                    'Portfolio Links',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  ...application.portfolioLinks.map((link) => Padding(
+                                                    padding: const EdgeInsets.only(bottom: 8),
+                                                    child: Text(
+                                                      link,
+                                                      style: const TextStyle(
+                                                        color: Colors.blue,
+                                                        decoration: TextDecoration.underline,
+                                                      ),
+                                                    ),
+                                                  )),
+                                                ],
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    );
                                   },
                                 );
                               },
@@ -190,12 +259,35 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
           _selectedFilter = value;
         });
       },
-      selectedColor: Theme.of(context).primaryColor.withOpacity(0.2),
+      selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
       checkmarkColor: Theme.of(context).primaryColor,
       labelStyle: TextStyle(
         color: isSelected ? Theme.of(context).primaryColor : Colors.grey[700],
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
       ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+          ),
+        ),
+      ],
     );
   }
 }
