@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:influcollb_app/core/api/api_service.dart';
 import 'package:influcollb_app/core/providers/api_provider.dart';
 import 'package:influcollb_app/features/campaign/data/models/application_model.dart';
 import 'package:influcollb_app/features/campaign/presentation/widgets/applicant_card.dart';
@@ -73,7 +72,8 @@ class _CampaignApplicantsScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Application ${status == 'accepted' ? 'accepted' : 'rejected'} successfully!'),
+            content: Text(
+                'Application ${status == 'accepted' ? 'accepted' : 'rejected'} successfully!'),
             backgroundColor: status == 'accepted' ? Colors.green : Colors.red,
           ),
         );
@@ -106,7 +106,8 @@ class _CampaignApplicantsScreenState
         ),
         title: Text(
           widget.campaign.title,
-          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style:
+              const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -121,10 +122,9 @@ class _CampaignApplicantsScreenState
                 ),
               );
               if (result == true) {
-                 // Refresh or go back? Better reload applications for now, 
-                 // though campaign details might have changed.
-                 // Ideally we'd refresh the campaign object too.
-                 Navigator.pop(context, true); // Signal parent to refresh
+                if (context.mounted) {
+                  Navigator.pop(context, true); // Signal parent to refresh
+                }
               }
             },
           ),
@@ -184,8 +184,10 @@ class _CampaignApplicantsScreenState
                                 final application = _applications[index];
                                 return ApplicantCard(
                                   application: application,
-                                  onAccept: () => _updateStatus(application.id, 'accepted'),
-                                  onReject: () => _updateStatus(application.id, 'rejected'),
+                                  onAccept: () =>
+                                      _updateStatus(application.id, 'accepted'),
+                                  onReject: () =>
+                                      _updateStatus(application.id, 'rejected'),
                                 );
                               },
                             ),
