@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:influcollb_app/core/providers/api_provider.dart';
 import 'package:influcollb_app/features/home/presentation/widgets/influencer_card.dart';
+import 'package:influcollb_app/features/influencer/presentation/pages/influencer_profile_screen.dart';
 
 class FindInfluencerScreen extends ConsumerStatefulWidget {
   const FindInfluencerScreen({super.key});
@@ -147,11 +148,12 @@ class _FindInfluencerScreenState extends ConsumerState<FindInfluencerScreen> {
                                 return InfluencerCard(
                                   influencer: influencer,
                                   onTap: () {
-                                    // TODO: Navigate to verified profile view
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                            'Selected: ${influencer['fullName']}'),
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => InfluencerProfileScreen(
+                                          influencerId: influencer['_id'] ?? influencer['id'] ?? '',
+                                        ),
                                       ),
                                     );
                                   },
