@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:influcollb_app/core/error/failures.dart';
+import 'package:influcollb_app/core/error/failure.dart';
 import 'package:influcollb_app/features/auth/data/models/auth_api_model.dart';
 import 'package:influcollb_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:influcollb_app/features/auth/domain/usecases/register_usecase.dart';
