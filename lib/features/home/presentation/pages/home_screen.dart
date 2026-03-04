@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
-import 'package:influcollb_app/features/campaign/presentation/view_model/campaign_view_model.dart';
-import 'package:influcollb_app/features/campaign/presentation/widgets/campaign_card.dart' as dashboard_widgets;
-import 'package:influcollb_app/features/campaign/presentation/pages/saved_campaigns_screen.dart';
+import 'package:influcollb_app/features/campaign/presentation/view_model/campaign_providers.dart';
+import 'package:influcollb_app/features/campaign/presentation/widgets/campaign_card.dart'
+    as dashboard_widgets;
+import 'package:influcollb_app/features/notification/presentation/pages/notifications_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -44,14 +45,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         "INFLUCOLLABNEPAL",
                         style: AppTextStyles.appBarTitle,
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationsScreen(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child:
+                              const Icon(Icons.notifications_outlined, size: 24),
                         ),
-                        child:
-                            const Icon(Icons.notifications_outlined, size: 24),
                       ),
                     ],
                   ),
@@ -177,15 +188,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           final campaign = state.campaigns[index];
                           return dashboard_widgets.CampaignCard(
                             campaign: campaign,
-                            isSaved: state.savedCampaigns.any((c) => c.id == campaign.id),
-                            onSave: () async {
-                              await ref.read(campaignViewModelProvider.notifier).toggleSave(campaign.id);
-                              if (context.mounted) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const SavedCampaignsScreen()),
-                                );
-                              }
+                            isSaved: state.savedCampaigns
+                                .any((c) => c.id == campaign.id),
+                            onSave: () {
+                              ref
+                                  .read(campaignViewModelProvider.notifier)
+                                  .toggleSave(campaign.id);
                             },
                           );
                         },
