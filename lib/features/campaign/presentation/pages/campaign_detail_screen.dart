@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/campaign_model.dart';
-import '../view_model/campaign_view_model.dart';
+import '../view_model/campaign_providers.dart';
 import '../../../../../app/theme/app_text_styles.dart';
+import '../../../application/presentation/pages/application_form_screen.dart';
+import '../../../application/presentation/view_model/application_providers.dart';
 
 class CampaignDetailScreen extends ConsumerWidget {
   final Campaign campaign;
@@ -15,7 +17,13 @@ class CampaignDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final campaignState = ref.watch(campaignViewModelProvider);
+    final applicationState = ref.watch(applicationViewModelProvider);
     final isApplying = campaignState.isApplying;
+    
+    // Check if user has already applied to this campaign
+    final hasApplied = applicationState.myApplications.any(
+      (app) => app.campaignId == campaign.id,
+    );
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -63,7 +71,8 @@ class CampaignDetailScreen extends ConsumerWidget {
             const SizedBox(height: 20),
             Text(
               campaign.title,
-              style: AppTextStyles.heading2.copyWith(fontSize: 28, color: Colors.black),
+              style: AppTextStyles.heading2
+                  .copyWith(fontSize: 28, color: Colors.black),
             ),
             const SizedBox(height: 8),
             Text(
@@ -77,7 +86,8 @@ class CampaignDetailScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             Text(
               'About the Campaign',
-              style: AppTextStyles.heading3.copyWith(fontSize: 18, color: Colors.black),
+              style: AppTextStyles.heading3
+                  .copyWith(fontSize: 18, color: Colors.black),
             ),
             const SizedBox(height: 12),
             Text(
@@ -94,7 +104,8 @@ class CampaignDetailScreen extends ConsumerWidget {
             if (campaign.requirements.isNotEmpty) ...[
               Text(
                 'Requirements',
-                style: AppTextStyles.heading3.copyWith(fontSize: 18, color: Colors.black),
+                style: AppTextStyles.heading3
+                    .copyWith(fontSize: 18, color: Colors.black),
               ),
               const SizedBox(height: 16),
               ...campaign.requirements.map((req) => _buildListItem(req)),
@@ -103,7 +114,8 @@ class CampaignDetailScreen extends ConsumerWidget {
             if (campaign.deliverables.isNotEmpty) ...[
               Text(
                 'Deliverables',
-                style: AppTextStyles.heading3.copyWith(fontSize: 18, color: Colors.black),
+                style: AppTextStyles.heading3
+                    .copyWith(fontSize: 18, color: Colors.black),
               ),
               const SizedBox(height: 16),
               ...campaign.deliverables.map((del) => _buildListItem(del)),
@@ -143,7 +155,7 @@ class CampaignDetailScreen extends ConsumerWidget {
                 ],
               ),
               child: ElevatedButton(
-                onPressed: isApplying ? null : () => _handleApply(context, ref),
+                onPressed: (isApplying || hasApplied) ? null : () => _handleApply(context, ref),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
@@ -161,9 +173,9 @@ class CampaignDetailScreen extends ConsumerWidget {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        'Apply Now',
-                        style: TextStyle(
+                    : Text(
+                        hasApplied ? 'Already Applied' : 'Apply Now',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
@@ -190,10 +202,12 @@ class CampaignDetailScreen extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: _buildDetailItem(Icons.attach_money, 'Budget', campaign.budgetRange, const Color(0xFF4CAF50)),
+                child: _buildDetailItem(Icons.attach_money, 'Budget',
+                    campaign.budgetRange, const Color(0xFF4CAF50)),
               ),
               Expanded(
-                child: _buildDetailItem(Icons.calendar_today, 'Deadline', campaign.formattedDeadline, const Color(0xFF2196F3)),
+                child: _buildDetailItem(Icons.calendar_today, 'Deadline',
+                    campaign.formattedDeadline, const Color(0xFF2196F3)),
               ),
             ],
           ),
@@ -201,10 +215,12 @@ class CampaignDetailScreen extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: _buildDetailItem(Icons.location_on_outlined, 'Location', campaign.location, const Color(0xFF9C27B0)),
+                child: _buildDetailItem(Icons.location_on_outlined, 'Location',
+                    campaign.location, const Color(0xFF9C27B0)),
               ),
               Expanded(
-                child: _buildDetailItem(Icons.people_outline, 'Applicants', '${campaign.applicantsCount}', const Color(0xFFFF9800)),
+                child: _buildDetailItem(Icons.people_outline, 'Applicants',
+                    '${campaign.applicantsCount}', const Color(0xFFFF9800)),
               ),
             ],
           ),
@@ -213,7 +229,8 @@ class CampaignDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailItem(IconData icon, String label, String value, Color color) {
+  Widget _buildDetailItem(
+      IconData icon, String label, String value, Color color) {
     return Row(
       children: [
         Container(
@@ -231,7 +248,8 @@ class CampaignDetailScreen extends ConsumerWidget {
             children: [
               Text(
                 label,
-                style: AppTextStyles.bodySmall.copyWith(color: Colors.grey[500]),
+                style:
+                    AppTextStyles.bodySmall.copyWith(color: Colors.grey[500]),
               ),
               const SizedBox(height: 2),
               Text(
@@ -280,25 +298,24 @@ class CampaignDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _handleApply(BuildContext context, WidgetRef ref) async {
-    final success = await ref.read(campaignViewModelProvider.notifier).applyToCampaign(campaign.id);
-    
-    if (context.mounted) {
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Application submitted successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        final error = ref.read(campaignViewModelProvider).error;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error ?? 'Failed to apply. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    // Navigate to application form screen
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ApplicationFormScreen(
+          campaignId: campaign.id,
+          campaignTitle: campaign.title,
+        ),
+      ),
+    );
+
+    if (context.mounted && result == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Application submitted successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
     }
   }
 }
