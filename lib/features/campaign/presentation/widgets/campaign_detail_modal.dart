@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../data/models/campaign_model.dart';
-import '../../../../../app/theme/app_text_styles.dart';
 
 class CampaignDetailModal extends StatelessWidget {
   final Campaign campaign;
@@ -65,16 +64,24 @@ class CampaignDetailModal extends StatelessWidget {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(child: _buildGridItem('Budget', 'NPR ${campaign.budgetRange}')),
-                            Expanded(child: _buildGridItem('Category', campaign.category)),
+                            Expanded(
+                                child: _buildGridItem(
+                                    'Budget', 'NPR ${campaign.budgetRange}')),
+                            Expanded(
+                                child: _buildGridItem(
+                                    'Category', campaign.category)),
                           ],
                         ),
                         const SizedBox(height: 24),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(child: _buildGridItem('Deadline', campaign.formattedDeadline)),
-                            Expanded(child: _buildGridItem('Location', campaign.location)),
+                            Expanded(
+                                child: _buildGridItem(
+                                    'Deadline', campaign.formattedDeadline)),
+                            Expanded(
+                                child: _buildGridItem(
+                                    'Location', campaign.location)),
                           ],
                         ),
                         const SizedBox(height: 32),
@@ -88,7 +95,8 @@ class CampaignDetailModal extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          ...campaign.requirements.map((req) => _buildListItem(req)),
+                          ...campaign.requirements
+                              .map((req) => _buildListItem(req)),
                           const SizedBox(height: 24),
                         ],
                         if (campaign.deliverables.isNotEmpty) ...[
@@ -101,7 +109,8 @@ class CampaignDetailModal extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          ...campaign.deliverables.map((del) => _buildListItem(del)),
+                          ...campaign.deliverables
+                              .map((del) => _buildListItem(del)),
                           const SizedBox(height: 32),
                         ],
                       ],
@@ -162,7 +171,10 @@ class CampaignDetailModal extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(color: Colors.grey[500], fontSize: 13, fontWeight: FontWeight.w500),
+          style: TextStyle(
+              color: Colors.grey[500],
+              fontSize: 13,
+              fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 4),
         Text(
