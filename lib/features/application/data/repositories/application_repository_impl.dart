@@ -17,15 +17,11 @@ class ApplicationRepositoryImpl implements IApplicationRepository {
       final result = await remoteDataSource.submitApplication(application);
       return Right(result);
     } on DioException catch (e) {
-      return Left(Failure(
-        error: e.response?.data['message'] ?? 'Failed to submit application',
-        statusCode: e.response?.statusCode.toString() ?? '500',
+      return Left(ServerFailure(
+        e.response?.data['message'] ?? 'Failed to submit application',
       ));
     } catch (e) {
-      return Left(Failure(
-        error: e.toString(),
-        statusCode: '500',
-      ));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -35,15 +31,11 @@ class ApplicationRepositoryImpl implements IApplicationRepository {
       final result = await remoteDataSource.getMyApplications();
       return Right(result);
     } on DioException catch (e) {
-      return Left(Failure(
-        error: e.response?.data['message'] ?? 'Failed to get applications',
-        statusCode: e.response?.statusCode.toString() ?? '500',
+      return Left(ServerFailure(
+        e.response?.data['message'] ?? 'Failed to get applications',
       ));
     } catch (e) {
-      return Left(Failure(
-        error: e.toString(),
-        statusCode: '500',
-      ));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -54,15 +46,11 @@ class ApplicationRepositoryImpl implements IApplicationRepository {
       final result = await remoteDataSource.getCampaignApplications(campaignId);
       return Right(result);
     } on DioException catch (e) {
-      return Left(Failure(
-        error: e.response?.data['message'] ?? 'Failed to get applications',
-        statusCode: e.response?.statusCode.toString() ?? '500',
+      return Left(ServerFailure(
+        e.response?.data['message'] ?? 'Failed to get applications',
       ));
     } catch (e) {
-      return Left(Failure(
-        error: e.toString(),
-        statusCode: '500',
-      ));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -73,15 +61,11 @@ class ApplicationRepositoryImpl implements IApplicationRepository {
       final result = await remoteDataSource.getApplicationById(id);
       return Right(result);
     } on DioException catch (e) {
-      return Left(Failure(
-        error: e.response?.data['message'] ?? 'Application not found',
-        statusCode: e.response?.statusCode.toString() ?? '500',
+      return Left(ServerFailure(
+        e.response?.data['message'] ?? 'Application not found',
       ));
     } catch (e) {
-      return Left(Failure(
-        error: e.toString(),
-        statusCode: '500',
-      ));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -93,15 +77,11 @@ class ApplicationRepositoryImpl implements IApplicationRepository {
           await remoteDataSource.updateApplicationStatus(id, status);
       return Right(result);
     } on DioException catch (e) {
-      return Left(Failure(
-        error: e.response?.data['message'] ?? 'Failed to update status',
-        statusCode: e.response?.statusCode.toString() ?? '500',
+      return Left(ServerFailure(
+        e.response?.data['message'] ?? 'Failed to update status',
       ));
     } catch (e) {
-      return Left(Failure(
-        error: e.toString(),
-        statusCode: '500',
-      ));
+      return Left(ServerFailure(e.toString()));
     }
   }
 }
