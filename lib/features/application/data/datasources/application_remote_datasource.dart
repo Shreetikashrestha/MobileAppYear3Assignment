@@ -21,17 +21,27 @@ class ApplicationRemoteDataSource implements IApplicationRemoteDataSource {
   Future<ApplicationModel> submitApplication(
       ApplicationModel application) async {
     try {
+      print('📤 Submitting application to: ${ApiEndpoints.applications}');
+      print('📤 Application data: ${application.toJson()}');
+      
       final response = await _apiClient.post(
         ApiEndpoints.applications,
         data: application.toJson(),
       );
 
+      print('📤 Response status: ${response.statusCode}');
+      print('📤 Response data: ${response.data}');
+
       if (response.statusCode == 201 && response.data['success'] == true) {
         final data = response.data['data'] as Map<String, dynamic>;
+        print('✅ Application submitted: ${data['_id']}');
         return ApplicationModel.fromJson(data);
       }
+      print('❌ Unexpected response: ${response.statusCode}');
       throw Exception('Failed to submit application');
-    } on DioException {
+    } catch (e, stackTrace) {
+      print('❌ Error submitting application: $e');
+      print('❌ Stack trace: $stackTrace');
       rethrow;
     }
   }
@@ -39,16 +49,39 @@ class ApplicationRemoteDataSource implements IApplicationRemoteDataSource {
   @override
   Future<List<ApplicationModel>> getMyApplications() async {
     try {
+      print('📋 Fetching my applications from: ${ApiEndpoints.myApplications}');
       final response = await _apiClient.get(
         ApiEndpoints.myApplications,
       );
 
+      print('📋 Response status: ${response.statusCode}');
+      print('📋 Response success: ${response.data['success']}');
+      print('📋 Response data type: ${response.data.runtimeType}');
+      print('📋 Full response: ${response.data}');
+
       if (response.statusCode == 200 && response.data['success'] == true) {
-        final data = response.data['data'] as List;
-        return data.map((json) => ApplicationModel.fromJson(json)).toList();
+        final data = response.data['data'];
+        print('📋 Data type: ${data.runtimeType}');
+        print('📋 Data: $data');
+        
+        if (data is List) {
+          print('📋 Found ${data.length} applications');
+          final applications = data.map((json) {
+            print('📋 Parsing application: $json');
+            return ApplicationModel.fromJson(json);
+          }).toList();
+          print('📋 Parsed applications: ${applications.map((a) => a.id).toList()}');
+          return applications;
+        } else {
+          print('❌ Data is not a list: ${data.runtimeType}');
+          return [];
+        }
       }
+      print('📋 No applications found or success is false');
       return [];
-    } on DioException {
+    } catch (e, stackTrace) {
+      print('❌ Error fetching applications: $e');
+      print('❌ Stack trace: $stackTrace');
       rethrow;
     }
   }
