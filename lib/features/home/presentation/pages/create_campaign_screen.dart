@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:influcollb_app/core/api/api_client.dart';
-import 'package:influcollb_app/core/api/api_endpoints.dart';
 import 'package:influcollb_app/core/providers/api_provider.dart';
 import 'package:influcollb_app/features/campaign/data/models/campaign_model.dart';
-import 'package:influcollb_app/core/api/api_service.dart';
 
 class CreateCampaignScreen extends ConsumerStatefulWidget {
   final Campaign? campaign;
   const CreateCampaignScreen({super.key, this.campaign});
 
   @override
-  ConsumerState<CreateCampaignScreen> createState() => _CreateCampaignScreenState();
+  ConsumerState<CreateCampaignScreen> createState() =>
+      _CreateCampaignScreenState();
 }
 
 class _CreateCampaignScreenState extends ConsumerState<CreateCampaignScreen> {
@@ -25,7 +23,7 @@ class _CreateCampaignScreenState extends ConsumerState<CreateCampaignScreen> {
   final _locationController = TextEditingController();
   final _requirementsController = TextEditingController();
   final _deliverablesController = TextEditingController();
-  
+
   DateTime? _selectedDeadline;
   bool _isSubmitting = false;
 
@@ -122,7 +120,7 @@ class _CreateCampaignScreenState extends ConsumerState<CreateCampaignScreen> {
           .map((e) => e.trim())
           .where((e) => e.isNotEmpty)
           .toList();
-      
+
       final deliverables = _deliverablesController.text
           .split(',')
           .map((e) => e.trim())
@@ -158,7 +156,9 @@ class _CreateCampaignScreenState extends ConsumerState<CreateCampaignScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.campaign != null ? 'Campaign updated successfully!' : 'Campaign created successfully!'),
+            content: Text(widget.campaign != null
+                ? 'Campaign updated successfully!'
+                : 'Campaign created successfully!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -195,7 +195,8 @@ class _CreateCampaignScreenState extends ConsumerState<CreateCampaignScreen> {
         ),
         title: Text(
           widget.campaign != null ? 'Edit Campaign' : 'Create Campaign',
-          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style:
+              const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
       ),
       body: Form(
@@ -365,7 +366,9 @@ class _CreateCampaignScreenState extends ConsumerState<CreateCampaignScreen> {
                               : '${_selectedDeadline!.year}-${_selectedDeadline!.month.toString().padLeft(2, '0')}-${_selectedDeadline!.day.toString().padLeft(2, '0')}',
                           style: TextStyle(
                             fontSize: 16,
-                            color: _selectedDeadline == null ? Colors.grey : Colors.black,
+                            color: _selectedDeadline == null
+                                ? Colors.grey
+                                : Colors.black,
                           ),
                         ),
                       ],
@@ -424,11 +427,14 @@ class _CreateCampaignScreenState extends ConsumerState<CreateCampaignScreen> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     : Text(
-                        widget.campaign != null ? 'Update Campaign' : 'Create Campaign',
+                        widget.campaign != null
+                            ? 'Update Campaign'
+                            : 'Create Campaign',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
