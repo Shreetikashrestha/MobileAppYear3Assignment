@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:influcollb_app/core/error/failures.dart';
+import 'package:influcollb_app/core/error/failure.dart';
 import 'package:influcollb_app/features/profile/domain/repositories/profile_repository.dart';
 import 'package:influcollb_app/features/profile/domain/usecases/upload_image_usecase.dart';
 
