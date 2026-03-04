@@ -69,7 +69,13 @@ class ApiEndpoints {
 
   // ==================== INFLUENCER ENDPOINTS ====================
   static String get influencers => '$baseUrl/users/influencers';
+  static String get getInfluencers => '$baseUrl/users/influencers';
   static String influencerById(String id) => '$baseUrl/users/influencers/$id';
+
+  // ==================== PAYMENT ENDPOINTS ====================
+  static String get myTransactions => '$baseUrl/payments/transactions';
+  static String get walletBalance => '$baseUrl/payments/wallet';
+  static String get requestPayout => '$baseUrl/payments/payout';
 
   // ==================== ADMIN ENDPOINTS ====================
   static String get adminUsers => '$baseUrl/admin/users';
