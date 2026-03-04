@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:influcollb_app/core/services/storage/user_session_service.dart';
 import 'package:influcollb_app/core/services/storage/token_service.dart';
 import 'package:influcollb_app/core/services/connectivity/network_info.dart';
@@ -27,27 +28,29 @@ class ApiClient {
         onRequest: (options, handler) async {
           options.headers['Content-Type'] = 'application/json';
           // Add Authorization header if token exists and not for login/register
-          final token = _tokenService.getToken();
+          final token = await _tokenService.getToken();
           final isAuthRoute = options.path.contains('/auth/login') ||
               options.path.contains('/auth/register');
-          
-          print('ApiClient Request: ${options.method} ${options.path}');
-          print('ApiClient Token found: ${token != null && token.isNotEmpty}');
-          
+
+          debugPrint('ApiClient Request: ${options.method} ${options.path}');
+          debugPrint(
+              'ApiClient Token found: ${token != null && token.isNotEmpty}');
+
           if (token != null && token.isNotEmpty && !isAuthRoute) {
             options.headers['Authorization'] = 'Bearer $token';
-            print('ApiClient added Authorization header');
+            debugPrint('ApiClient added Authorization header');
           } else {
-            print('ApiClient NOT adding Authorization header. Reason: ${token == null ? 'Token is null' : token.isEmpty ? 'Token is empty' : 'Auth route'}');
+            debugPrint(
+                'ApiClient NOT adding Authorization header. Reason: ${token == null ? 'Token is null' : token.isEmpty ? 'Token is empty' : 'Auth route'}');
           }
           return handler.next(options);
         },
-        onError: (error, handler) {
+        onError: (error, handler) async {
           // Handle 401/403 Unauthorized/Forbidden
           if (error.response?.statusCode == 401 ||
               error.response?.statusCode == 403) {
-            _userSessionService.clearSession();
-            _tokenService.removeToken();
+            await _userSessionService.clearSession();
+            await _tokenService.removeToken();
             // Optionally: trigger logout UI or redirect
           }
           return handler.next(error);
