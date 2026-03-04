@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'shared_preferences_provider.dart';
 import '../services/storage/user_session_service.dart';
 import '../services/storage/token_service.dart';
@@ -10,9 +11,13 @@ final userSessionServiceProvider = Provider<UserSessionService>((ref) {
   return UserSessionService(prefs: prefs);
 });
 
+final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
+  return const FlutterSecureStorage();
+});
+
 final tokenServiceProvider = Provider<TokenService>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return TokenService(prefs: prefs);
+  final storage = ref.watch(secureStorageProvider);
+  return TokenService(storage: storage);
 });
 
 final networkInfoProvider = Provider<NetworkInfo>((ref) {
