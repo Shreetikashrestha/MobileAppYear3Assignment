@@ -19,7 +19,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final passwordController = TextEditingController();
   bool _obscurePassword = true;
   int _selectedRole = 0; // 0: Influencer, 1: Brand
-  bool _rememberMe = false;
 
   @override
   void dispose() {
@@ -50,7 +49,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       next.when(
         data: (user) {
           if (user != null) {
-            if (_selectedRole == 0) {
+            // Route based on backend's isInfluencer value
+            if (user.isInfluencer) {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (_) => const InfluencerBottomNav()),
@@ -225,36 +225,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Checkbox(
-                            key: const Key('rememberMeCheckbox'),
-                            value: _rememberMe,
-                            onChanged: (val) =>
-                                setState(() => _rememberMe = val ?? false),
-                            activeColor: Colors.purple,
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ForgotPasswordScreen(),
                           ),
-                          const Text('Remember me'),
-                        ],
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ForgotPasswordScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text('Forgot password?',
-                            style: TextStyle(color: Colors.purple)),
-                      ),
-                    ],
+                        );
+                      },
+                      child: const Text('Forgot password?',
+                          style: TextStyle(color: Colors.purple)),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
