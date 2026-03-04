@@ -1,13 +1,14 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 /// Instagram Graph API Service
 /// Requires Instagram Business Account and Facebook App
 class InstagramService {
   final Dio _dio = Dio();
-  
+
   // Instagram Graph API base URL
   static const String _baseUrl = 'https://graph.instagram.com';
-  
+
   // User needs to get their own access token from Facebook Developer Console
   String? _accessToken;
 
@@ -26,7 +27,8 @@ class InstagramService {
       final response = await _dio.get(
         '$_baseUrl/$userId',
         queryParameters: {
-          'fields': 'id,username,account_type,media_count,followers_count,follows_count',
+          'fields':
+              'id,username,account_type,media_count,followers_count,follows_count',
           'access_token': _accessToken,
         },
       );
@@ -36,13 +38,14 @@ class InstagramService {
       }
       return null;
     } catch (e) {
-      print('Error fetching Instagram profile: $e');
+      debugPrint('Error fetching Instagram profile: $e');
       return null;
     }
   }
 
   /// Get user's media (posts)
-  Future<List<InstagramMedia>> getUserMedia(String userId, {int limit = 10}) async {
+  Future<List<InstagramMedia>> getUserMedia(String userId,
+      {int limit = 10}) async {
     if (_accessToken == null) {
       throw Exception('Access token not set');
     }
@@ -51,7 +54,8 @@ class InstagramService {
       final response = await _dio.get(
         '$_baseUrl/$userId/media',
         queryParameters: {
-          'fields': 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count',
+          'fields':
+              'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count',
           'limit': limit,
           'access_token': _accessToken,
         },
@@ -63,7 +67,7 @@ class InstagramService {
       }
       return [];
     } catch (e) {
-      print('Error fetching Instagram media: $e');
+      debugPrint('Error fetching Instagram media: $e');
       return [];
     }
   }
@@ -88,7 +92,7 @@ class InstagramService {
       }
       return null;
     } catch (e) {
-      print('Error fetching media insights: $e');
+      debugPrint('Error fetching media insights: $e');
       return null;
     }
   }
@@ -142,7 +146,8 @@ class InstagramService {
       final hasGoodEngagement = avgEngagement >= 1.0; // At least 1%
       final hasRecentPosts = media.length >= 10;
 
-      final isVerified = hasEnoughFollowers && hasGoodEngagement && hasRecentPosts;
+      final isVerified =
+          hasEnoughFollowers && hasGoodEngagement && hasRecentPosts;
 
       return InfluencerVerification(
         isVerified: isVerified,
@@ -254,7 +259,7 @@ class InstagramInsights {
 
   factory InstagramInsights.fromJson(Map<String, dynamic> json) {
     final List<dynamic> data = json['data'] ?? [];
-    
+
     int engagement = 0;
     int impressions = 0;
     int reach = 0;
@@ -263,7 +268,7 @@ class InstagramInsights {
     for (final metric in data) {
       final name = metric['name'];
       final value = metric['values'][0]['value'];
-      
+
       switch (name) {
         case 'engagement':
           engagement = value;
