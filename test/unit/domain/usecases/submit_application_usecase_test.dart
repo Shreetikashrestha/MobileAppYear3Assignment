@@ -45,29 +45,29 @@ void main() {
 
     test('should return failure when submission fails', () async {
       // Arrange
-      final failure = Failure(error: 'Submission failed', statusCode: '500');
+      const failure = ServerFailure('Submission failed');
       when(() => mockRepository.submitApplication(testApplication))
-          .thenAnswer((_) async => Left(failure));
+          .thenAnswer((_) async => const Left(failure));
 
       // Act
       final result = await useCase(testApplication);
 
       // Assert
-      expect(result, Left(failure));
+      expect(result, const Left(failure));
       verify(() => mockRepository.submitApplication(testApplication)).called(1);
     });
 
     test('should return failure when network error occurs', () async {
       // Arrange
-      final failure = Failure(error: 'No internet connection', statusCode: '0');
+      const failure = NetworkFailure('No internet connection');
       when(() => mockRepository.submitApplication(testApplication))
-          .thenAnswer((_) async => Left(failure));
+          .thenAnswer((_) async => const Left(failure));
 
       // Act
       final result = await useCase(testApplication);
 
       // Assert
-      expect(result, Left(failure));
+      expect(result, const Left(failure));
       expect(result.fold((l) => l.error, (r) => ''), 'No internet connection');
     });
   });
