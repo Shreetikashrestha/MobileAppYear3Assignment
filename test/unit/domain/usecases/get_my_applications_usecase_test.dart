@@ -67,15 +67,15 @@ void main() {
 
     test('should return failure when fetching fails', () async {
       // Arrange
-      final failure = Failure(error: 'Failed to fetch applications', statusCode: '500');
+      const failure = ServerFailure('Failed to fetch applications');
       when(() => mockRepository.getMyApplications())
-          .thenAnswer((_) async => Left(failure));
+          .thenAnswer((_) async => const Left(failure));
 
       // Act
       final result = await useCase(NoParams());
 
       // Assert
-      expect(result, Left(failure));
+      expect(result, const Left(failure));
       verify(() => mockRepository.getMyApplications()).called(1);
     });
   });
