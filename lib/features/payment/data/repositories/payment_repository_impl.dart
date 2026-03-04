@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../core/error/failure.dart';
 import '../../domain/repositories/payment_repository.dart';
 import '../../domain/entities/transaction_entity.dart';
@@ -48,9 +49,9 @@ class PaymentRepositoryImpl implements IPaymentRepository {
       );
       return Right(transaction);
     } on DioException catch (e) {
-      print('Request Payout Error: ${e.response?.data}');
+      debugPrint('Request Payout Error: ${e.response?.data}');
       if (e.response?.data != null && e.response!.data['message'] != null) {
-         return Left(ServerFailure(e.response!.data['message']));
+        return Left(ServerFailure(e.response!.data['message']));
       }
       return Left(ServerFailure(e.message ?? 'Server Error'));
     } catch (e) {
