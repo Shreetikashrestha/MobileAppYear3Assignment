@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen3 extends StatefulWidget {
   const OnboardingScreen3({super.key});
@@ -101,11 +102,11 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonFormField<String>(
-                        value: selectedGender,
+                        initialValue: selectedGender,
                         decoration: const InputDecoration(
                           contentPadding: EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
@@ -140,7 +141,7 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -149,7 +150,7 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
                             Text(
                               selectedDate == null
                                   ? "Select your date of birth"
-                                  : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
+                                  : "${selectedDate?.day}/${selectedDate?.month}/${selectedDate?.year}",
                               style: TextStyle(
                                 color: selectedDate == null
                                     ? Colors.grey[600]
@@ -172,11 +173,11 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonFormField<String>(
-                        value: selectedEthnicity,
+                        initialValue: selectedEthnicity,
                         decoration: const InputDecoration(
                           contentPadding: EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
@@ -207,11 +208,11 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonFormField<String>(
-                        value: selectedLanguage,
+                        initialValue: selectedLanguage,
                         decoration: const InputDecoration(
                           contentPadding: EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
@@ -245,8 +246,12 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
                         borderRadius: BorderRadius.all(Radius.circular(30)),
                       ),
                       child: TextButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/signup');
+                        onPressed: () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setBool('onboardingCompleted', true);
+                          if (context.mounted) {
+                            Navigator.pushReplacementNamed(context, '/login');
+                          }
                         },
                         child: const Text(
                           "Continue",

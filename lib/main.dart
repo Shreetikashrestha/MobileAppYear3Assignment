@@ -1,39 +1,25 @@
 import 'package:flutter/material.dart';
-import 'core/services/hive_service.dart';
-import 'features/home/presentation/pages/splash_screen.dart';
-import 'features/onboarding/presentation/pages/onboarding1_screen.dart';
-import 'features/onboarding/presentation/pages/onboarding2_screen.dart';
-import 'features/onboarding/presentation/pages/onboarding3_screen.dart';
-import 'features/auth/presentation/pages/signup_screen.dart';
-import 'features/home/presentation/pages/home_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/services/hive/hive_service.dart';
+import 'core/providers/shared_preferences_provider.dart';
+import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
+
+  // Initialize Hive
   await HiveService().init();
-  runApp(const MyApp());
-}
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Influcollab App',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.purple,
-        useMaterial3: true,
-      ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const SplashScreen(),
-        '/onboarding1': (context) => const OnboardingScreen1(),
-        '/onboarding2': (context) => const OnboardingScreen2(),
-        '/onboarding3': (context) => const OnboardingScreen3(),
-        '/signup': (context) => const SignupScreen(),
-        '/home': (context) => const HomeScreen(),
-      },
-    );
-  }
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWith((ref) => prefs),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }

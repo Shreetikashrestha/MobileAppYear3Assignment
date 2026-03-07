@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:influcollb_app/core/services/storage/user_session_service.dart';
 
 class OnboardingScreen1 extends StatefulWidget {
   const OnboardingScreen1({super.key});
@@ -54,7 +56,7 @@ class _OnboardingScreen1State extends State<OnboardingScreen1> {
                   const SizedBox(height: 30),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: TextField(
@@ -71,8 +73,8 @@ class _OnboardingScreen1State extends State<OnboardingScreen1> {
                   Container(
                     width: double.infinity,
                     height: 50,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
                         colors: [
                           Color(0xFFB798F0),
                           Color(0xFF9F7AEA),
@@ -81,8 +83,14 @@ class _OnboardingScreen1State extends State<OnboardingScreen1> {
                       borderRadius: BorderRadius.all(Radius.circular(30)),
                     ),
                     child: TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/onboarding2');
+                      onPressed: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        final userSessionService = UserSessionService(prefs: prefs);
+                        await userSessionService.saveOnboardingData(
+                            summary: _summaryController.text.trim());
+                        if (context.mounted) {
+                          Navigator.pushNamed(context, '/onboarding2');
+                        }
                       },
                       child: const Text(
                         "Continue",

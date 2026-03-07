@@ -45,5 +45,22 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to the camera for capturing photos and making video calls.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to the microphone for recording audio and making video calls.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to the photo library to select photos.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need access to your location to show nearby campaigns.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We need access to your location to show nearby campaigns.</string>
+	<key>GMSApiKey</key>
+	<string>YOUR_GOOGLE_MAPS_API_KEY</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>We need Face ID or Touch ID to securely log you into your account.</string>
+
+
+
 </dict>
 </plist>

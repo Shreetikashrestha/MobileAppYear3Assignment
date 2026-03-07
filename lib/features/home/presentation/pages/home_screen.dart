@@ -1,58 +1,20 @@
 import 'package:flutter/material.dart';
-import '../../../../theme/app_colors.dart';
-import '../../../../theme/app_text_styles.dart';
-import '../../../../models/campaign_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_text_styles.dart';
+import 'package:influcollb_app/features/campaign/presentation/view_model/campaign_providers.dart';
+import 'package:influcollb_app/features/campaign/presentation/widgets/campaign_card.dart'
+    as dashboard_widgets;
+import 'package:influcollb_app/features/notification/presentation/pages/notifications_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final List<Campaign> campaigns = [
-    Campaign(
-      category: 'Fashion',
-      image: 'assets/images/fashion_campaign.jpg',
-      logo: 'assets/images/luxe_logo.png',
-      brandName: 'Luxe Fashion',
-      title: 'Summer Collection Launch',
-      description:
-          'Looking for fashion influencers to promote our new summer collection. Must have strong...',
-      price: 'Rs1000-Rs15000',
-      daysLeft: '5 days left',
-      location: 'Remote',
-      interested: '156 interested',
-    ),
-    Campaign(
-      category: 'Fitness',
-      image: 'assets/images/fitness_campaign.jpg',
-      logo: 'assets/images/fitlife_logo.png',
-      brandName: 'FitLife Pro',
-      title: 'Fitness Challenge Series',
-      description:
-          '30-day fitness challenge collaboration. Looking for fitness enthusiasts to document...',
-      price: 'Rs3000-Rs10000',
-      daysLeft: '7 days left',
-      location: 'Remote',
-      interested: '312 interested',
-    ),
-    Campaign(
-      category: 'Beauty',
-      image: 'assets/images/beauty_campaign.jpg',
-      logo: 'assets/images/glowup_logo.png',
-      brandName: 'GlowUp Beauty',
-      title: 'Skincare Product Review',
-      description:
-          'Seeking beauty influencers to review our new organic skincare line. Free products +...',
-      price: 'Rs400-Rs12000',
-      daysLeft: '10 days left',
-      location: 'Remote',
-      interested: '234 interested',
-    ),
-  ];
-
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,14 +45,24 @@ class _HomeScreenState extends State<HomeScreen> {
                         "INFLUCOLLABNEPAL",
                         style: AppTextStyles.appBarTitle,
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationsScreen(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child:
+                              const Icon(Icons.notifications_outlined, size: 24),
                         ),
-                        child:
-                            const Icon(Icons.notifications_outlined, size: 24),
                       ),
                     ],
                   ),
@@ -179,11 +151,53 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    itemCount: campaigns.length,
-                    itemBuilder: (context, index) {
-                      return CampaignCard(campaign: campaigns[index]);
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final state = ref.watch(campaignViewModelProvider);
+
+                      if (state.isLoading) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+
+                      if (state.error != null) {
+                        return Center(
+                          child: Text(
+                            state.error!,
+                            style: AppTextStyles.bodyMedium
+                                .copyWith(color: Colors.red),
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      }
+
+                      if (state.campaigns.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'No campaigns available right now.',
+                            style: AppTextStyles.bodyMedium,
+                          ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: state.campaigns.length,
+                        itemBuilder: (context, index) {
+                          final campaign = state.campaigns[index];
+                          return dashboard_widgets.CampaignCard(
+                            campaign: campaign,
+                            isSaved: state.savedCampaigns
+                                .any((c) => c.id == campaign.id),
+                            onSave: () {
+                              ref
+                                  .read(campaignViewModelProvider.notifier)
+                                  .toggleSave(campaign.id);
+                            },
+                          );
+                        },
+                      );
                     },
                   ),
                 ),
@@ -198,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowColor.withOpacity(0.1),
+              color: AppColors.shadowColor.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -220,173 +234,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icon(Icons.person_outline), label: ''),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class CampaignCard extends StatelessWidget {
-  final Campaign campaign;
-
-  const CampaignCard({super.key, required this.campaign});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowColor.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Image.asset(
-                  campaign.image,
-                  width: double.infinity,
-                  height: 180,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: double.infinity,
-                      height: 180,
-                      color: Colors.grey[300],
-                      child:
-                          const Icon(Icons.image, size: 50, color: Colors.grey),
-                    );
-                  },
-                ),
-              ),
-              Positioned(
-                top: 12,
-                left: 12,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(campaign.category, style: AppTextStyles.label),
-                ),
-              ),
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.favorite_border, size: 20),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.bookmark_border, size: 20),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                bottom: 12,
-                right: 12,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    "preview",
-                    style: TextStyle(color: Colors.white, fontSize: 10),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundImage: AssetImage(campaign.logo),
-                      backgroundColor: Colors.grey[200],
-                    ),
-                    const SizedBox(width: 8),
-                    Text(campaign.brandName, style: AppTextStyles.bodySmall),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(campaign.title, style: AppTextStyles.heading3),
-                const SizedBox(height: 8),
-                Text(
-                  campaign.description,
-                  style: AppTextStyles.bodyMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(Icons.attach_money,
-                        size: 16, color: AppColors.success),
-                    const SizedBox(width: 4),
-                    Text(campaign.price,
-                        style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.green)),
-                    const SizedBox(width: 16),
-                    const Icon(Icons.calendar_today,
-                        size: 14, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(campaign.daysLeft, style: AppTextStyles.bodySmall),
-                    const SizedBox(width: 16),
-                    const Icon(Icons.location_on, size: 14, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(campaign.location, style: AppTextStyles.bodySmall),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(campaign.interested, style: AppTextStyles.bodySmall),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: const Text("view details"),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

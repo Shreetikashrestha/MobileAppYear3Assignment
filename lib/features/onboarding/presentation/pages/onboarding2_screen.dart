@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:influcollb_app/core/services/storage/user_session_service.dart';
 
 class OnboardingScreen2 extends StatefulWidget {
   const OnboardingScreen2({super.key});
@@ -56,13 +58,13 @@ class _OnboardingScreen2State extends State<OnboardingScreen2> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
                           color: Colors.black12,
                           blurRadius: 5,
-                          offset: const Offset(2, 2),
+                          offset: Offset(2, 2),
                         ),
                       ],
                     ),
@@ -80,8 +82,8 @@ class _OnboardingScreen2State extends State<OnboardingScreen2> {
                   Container(
                     width: double.infinity,
                     height: 50,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
                         colors: [
                           Color(0xFFB798F0),
                           Color(0xFF9F7AEA),
@@ -90,8 +92,14 @@ class _OnboardingScreen2State extends State<OnboardingScreen2> {
                       borderRadius: BorderRadius.all(Radius.circular(30)),
                     ),
                     child: TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/onboarding3');
+                      onPressed: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        final userSessionService = UserSessionService(prefs: prefs);
+                        await userSessionService.saveOnboardingData(
+                            bio: descriptionController.text.trim());
+                        if (context.mounted) {
+                          Navigator.pushNamed(context, '/onboarding3');
+                        }
                       },
                       child: const Text(
                         "Continue",

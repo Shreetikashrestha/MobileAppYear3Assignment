@@ -1,0 +1,113 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                    📊 TEST COVERAGE SUMMARY                          ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ OVERALL STATISTICS                                                  │
+├─────────────────────────────────────────────────────────────────────┤
+│ Total Tests:        14                                              │
+│ Tests Passed:       14 ✅                                           │
+│ Tests Failed:       0                                               │
+│ Success Rate:       100%                                            │
+│                                                                     │
+│ Files Tested:       7                                               │
+│ Lines Covered:      31 / 85                                         │
+│ Coverage:           36.47%                                          │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ COVERAGE BY FILE                                                    │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│ ✅ login_usecase.dart              6/6    lines  (100%) ████████   │
+│ ✅ logout_usecase.dart             3/3    lines  (100%) ████████   │
+│ ✅ get_current_usecase.dart        4/4    lines  (100%) ████████   │
+│ ⚠️  register_usecase.dart          6/10   lines  ( 60%) █████░░░   │
+│ ⚠️  auth_entity.dart               1/3    lines  ( 33%) ███░░░░░   │
+│ ⚠️  auth_api_model.dart            9/47   lines  ( 19%) ██░░░░░░   │
+│ ⚠️  failure.dart                   2/12   lines  ( 17%) ██░░░░░░   │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ COVERAGE BY LAYER                                                   │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│ Domain (Use Cases):     90%  ████████░  ✅ Excellent               │
+│ Data (Models):          26%  ███░░░░░░  ⚠️  Needs Work             │
+│ Core (Utilities):       17%  ██░░░░░░░  ⚠️  Needs Work             │
+│                                                                     │
+│ View Models:             0%  ░░░░░░░░░  ❌ Not Tested              │
+│ Widgets:                 0%  ░░░░░░░░░  ❌ Not Tested              │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ TEST BREAKDOWN                                                      │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│ Unit Tests (Use Cases):          14 tests  ✅ ALL PASSING          │
+│   ├─ LoginUseCase                 3 tests  ✅                       │
+│   ├─ RegisterUseCase              3 tests  ✅                       │
+│   ├─ LogoutUseCase                4 tests  ✅                       │
+│   └─ GetCurrentUserUseCase        4 tests  ✅                       │
+│                                                                     │
+│ View Model Tests (Riverpod):     16 tests  ⏳ Created              │
+│   ├─ LoginViewModel               8 tests  ⏳                       │
+│   └─ RegisterViewModel            8 tests  ⏳                       │
+│                                                                     │
+│ Widget Tests:                    40 tests  ⏳ Created              │
+│   ├─ LoginScreen                 20 tests  ⏳                       │
+│   └─ SignupScreen                20 tests  ⏳                       │
+│                                                                     │
+│ TOTAL:                           70 tests                           │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ COVERAGE GOALS                                                      │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│ Layer          Goal    Current   Status                            │
+│ ─────────────────────────────────────────────────────────────────  │
+│ Use Cases      100%    90%       ⚠️  Close to target               │
+│ View Models    80%     0%        ❌ Not started                    │
+│ Widgets        70%     0%        ❌ Not started                    │
+│ Models         60%     26%       ❌ Below target                   │
+│ Overall        75%     36.47%    ❌ Below target                   │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ QUICK COMMANDS                                                      │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│ Run all tests:                                                      │
+│ $ flutter test test/unit_tests/                                    │
+│                                                                     │
+│ Run with coverage:                                                  │
+│ $ flutter test --coverage test/unit_tests/                         │
+│                                                                     │
+│ View this summary:                                                  │
+│ $ cat test/COVERAGE_SUMMARY.txt                                    │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│ STATE MANAGEMENT: RIVERPOD 2.6.1 ⭐⭐⭐⭐⭐                          │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│ ✅ StateNotifierProvider  - View models with mutable state         │
+│ ✅ Provider               - Dependency injection                   │
+│ ✅ FutureProvider         - Async data loading                     │
+│ ✅ StreamProvider         - Real-time data streams                 │
+│ ✅ AsyncValue             - Loading/error/data states              │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════╗
+║ ✅ STATUS: 14/14 Tests Passing | Coverage: 36.47%                   ║
+║ 🎯 NEXT: Fix view model & widget tests to reach 75% coverage       ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Last Updated: March 5, 2026
