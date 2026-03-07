@@ -30,9 +30,9 @@ class _ApplicationHistoryScreenState
   Future<void> _loadUserRoleAndApplications() async {
     final userSession = ref.read(userSessionServiceProvider);
     final isInfluencer = userSession.getIsInfluencer() ?? false;
-    
+
     if (!mounted) return;
-    
+
     setState(() {
       _isInfluencer = isInfluencer;
       _isLoadingRole = false;
@@ -47,16 +47,17 @@ class _ApplicationHistoryScreenState
     } else {
       // Brand: Load their campaigns first, then get all applications
       if (mounted) {
-        await ref.read(campaignViewModelProvider.notifier).loadCampaigns();
-        final campaigns = ref.read(campaignViewModelProvider).campaigns;
-        
-        // Fetch applications for all campaigns
-        for (final campaign in campaigns) {
-          if (mounted) {
-            await ref
-                .read(applicationViewModelProvider.notifier)
-                .getCampaignApplications(campaign.id);
-          }
+        await ref
+            .read(campaignViewModelProvider.notifier)
+            .loadMyBrandCampaigns();
+        final campaigns = ref.read(campaignViewModelProvider).myBrandCampaigns;
+
+        // Fetch applications for all brand campaigns using aggregate method
+        if (campaigns.isNotEmpty && mounted) {
+          final campaignIds = campaigns.map((c) => c.id).toList();
+          await ref
+              .read(applicationViewModelProvider.notifier)
+              .getApplicationsForCampaigns(campaignIds);
         }
       }
     }
@@ -88,11 +89,11 @@ class _ApplicationHistoryScreenState
     }
 
     final state = ref.watch(applicationViewModelProvider);
-    
+
     // Get applications based on role
-    final applications = _isInfluencer 
-        ? state.myApplications  // Influencer: applications they sent
-        : state.campaignApplications;  // Brand: applications received
+    final applications = _isInfluencer
+        ? state.myApplications // Influencer: applications they sent
+        : state.campaignApplications; // Brand: applications received
 
     // Calculate statistics
     final totalApplications = applications.length;
@@ -285,8 +286,7 @@ class _ApplicationHistoryScreenState
                     padding: const EdgeInsets.all(32.0),
                     child: Column(
                       children: [
-                        Icon(Icons.history,
-                            size: 80, color: Colors.grey[300]),
+                        Icon(Icons.history, size: 80, color: Colors.grey[300]),
                         const SizedBox(height: 16),
                         Text(
                           'No ${_selectedFilter == 'all' ? '' : _selectedFilter} applications',
@@ -440,11 +440,17 @@ class _ApplicationHistoryScreenState
 
     // Handle campaign as either object or map
     final campaign = application.campaign;
-    final campaignTitle = campaign is Map ? campaign['title'] as String? : campaign?.title;
-    final campaignDescription = campaign is Map ? campaign['description'] as String? : campaign?.description;
-    final campaignCategory = campaign is Map ? campaign['category'] as String? : campaign?.category;
-    final campaignBudgetMin = campaign is Map ? campaign['budgetMin'] as int? : campaign?.budgetMin;
-    final campaignBudgetMax = campaign is Map ? campaign['budgetMax'] as int? : campaign?.budgetMax;
+    final campaignTitle =
+        campaign is Map ? campaign['title'] as String? : campaign?.title;
+    final campaignDescription = campaign is Map
+        ? campaign['description'] as String?
+        : campaign?.description;
+    final campaignCategory =
+        campaign is Map ? campaign['category'] as String? : campaign?.category;
+    final campaignBudgetMin =
+        campaign is Map ? campaign['budgetMin'] as int? : campaign?.budgetMin;
+    final campaignBudgetMax =
+        campaign is Map ? campaign['budgetMax'] as int? : campaign?.budgetMax;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -471,7 +477,8 @@ class _ApplicationHistoryScreenState
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CampaignDetailScreen(campaign: campaign),
+                    builder: (context) =>
+                        CampaignDetailScreen(campaign: campaign),
                   ),
                 );
               }
@@ -522,7 +529,8 @@ class _ApplicationHistoryScreenState
                             Row(
                               children: [
                                 if (campaignCategory != null) ...[
-                                  Icon(Icons.category, size: 12, color: Colors.grey[600]),
+                                  Icon(Icons.category,
+                                      size: 12, color: Colors.grey[600]),
                                   const SizedBox(width: 4),
                                   Text(
                                     campaignCategory,
@@ -533,8 +541,10 @@ class _ApplicationHistoryScreenState
                                   ),
                                   const SizedBox(width: 8),
                                 ],
-                                if (campaignBudgetMin != null && campaignBudgetMax != null) ...[
-                                  Icon(Icons.attach_money, size: 12, color: Colors.grey[600]),
+                                if (campaignBudgetMin != null &&
+                                    campaignBudgetMax != null) ...[
+                                  Icon(Icons.attach_money,
+                                      size: 12, color: Colors.grey[600]),
                                   const SizedBox(width: 2),
                                   Text(
                                     '\$$campaignBudgetMin-\$$campaignBudgetMax',
@@ -596,7 +606,8 @@ class _ApplicationHistoryScreenState
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.campaign, size: 14, color: Colors.blue[700]),
+                                  Icon(Icons.campaign,
+                                      size: 14, color: Colors.blue[700]),
                                   const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
@@ -612,7 +623,8 @@ class _ApplicationHistoryScreenState
                                   ),
                                 ],
                               ),
-                              if (campaignDescription != null && campaignDescription!.isNotEmpty) ...[
+                              if (campaignDescription != null &&
+                                  campaignDescription!.isNotEmpty) ...[
                                 const SizedBox(height: 6),
                                 Text(
                                   campaignDescription!,
@@ -740,7 +752,8 @@ class _ApplicationHistoryScreenState
                     decoration: BoxDecoration(
                       color: Colors.green.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                      border: Border.all(
+                          color: Colors.green.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
@@ -770,7 +783,8 @@ class _ApplicationHistoryScreenState
                     decoration: BoxDecoration(
                       color: Colors.red.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                      border:
+                          Border.all(color: Colors.red.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
@@ -799,7 +813,8 @@ class _ApplicationHistoryScreenState
                     children: [
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () => _handleAcceptApplication(context, ref, application),
+                          onPressed: () => _handleAcceptApplication(
+                              context, ref, application),
                           icon: const Icon(Icons.check, size: 18),
                           label: const Text('Accept'),
                           style: ElevatedButton.styleFrom(
@@ -812,7 +827,8 @@ class _ApplicationHistoryScreenState
                       const SizedBox(width: 8),
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () => _handleRejectApplication(context, ref, application),
+                          onPressed: () => _handleRejectApplication(
+                              context, ref, application),
                           icon: const Icon(Icons.close, size: 18),
                           label: const Text('Reject'),
                           style: ElevatedButton.styleFrom(
@@ -833,7 +849,8 @@ class _ApplicationHistoryScreenState
     );
   }
 
-  Future<void> _handleAcceptApplication(BuildContext context, WidgetRef ref, application) async {
+  Future<void> _handleAcceptApplication(
+      BuildContext context, WidgetRef ref, application) async {
     final success = await ref
         .read(applicationViewModelProvider.notifier)
         .updateApplicationStatus(application.id, 'accepted');
@@ -859,7 +876,8 @@ class _ApplicationHistoryScreenState
     }
   }
 
-  Future<void> _handleRejectApplication(BuildContext context, WidgetRef ref, application) async {
+  Future<void> _handleRejectApplication(
+      BuildContext context, WidgetRef ref, application) async {
     final success = await ref
         .read(applicationViewModelProvider.notifier)
         .updateApplicationStatus(application.id, 'rejected');
