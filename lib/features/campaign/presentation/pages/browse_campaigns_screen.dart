@@ -4,6 +4,7 @@ import 'package:influcollb_app/features/campaign/presentation/view_model/campaig
 import 'package:influcollb_app/features/campaign/presentation/pages/comprehensive_campaign_detail_screen.dart';
 import 'package:influcollb_app/features/campaign/data/models/campaign_model.dart';
 import 'package:intl/intl.dart';
+import 'package:influcollb_app/core/services/sensor/shake_detector_service.dart';
 
 class BrowseCampaignsScreen extends ConsumerStatefulWidget {
   const BrowseCampaignsScreen({super.key});
@@ -13,7 +14,8 @@ class BrowseCampaignsScreen extends ConsumerStatefulWidget {
       _BrowseCampaignsScreenState();
 }
 
-class _BrowseCampaignsScreenState extends ConsumerState<BrowseCampaignsScreen> {
+class _BrowseCampaignsScreenState extends ConsumerState<BrowseCampaignsScreen>
+    with ShakeDetectorMixin {
   final TextEditingController _searchController = TextEditingController();
   String _searchTerm = '';
   String _categoryFilter = 'all';
@@ -23,9 +25,33 @@ class _BrowseCampaignsScreenState extends ConsumerState<BrowseCampaignsScreen> {
   @override
   void initState() {
     super.initState();
+    // Start shake detection
+    startShakeDetection();
     Future.microtask(() {
       ref.read(campaignViewModelProvider.notifier).loadAllCampaigns();
     });
+  }
+
+  @override
+  void onShakeDetected() {
+    // Refresh campaigns when shake is detected
+    debugPrint('📳 Shake detected! Refreshing campaigns...');
+    ref.read(campaignViewModelProvider.notifier).loadAllCampaigns();
+    
+    // Show feedback to user
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.refresh, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Refreshing campaigns...'),
+          ],
+        ),
+        duration: Duration(seconds: 1),
+        backgroundColor: Colors.blue,
+      ),
+    );
   }
 
   @override
