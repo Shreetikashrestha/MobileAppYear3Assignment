@@ -162,11 +162,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               children: [
                                 Text(
                                   msg['name'],
-                                  style: AppTextStyles.bodyLarge,
+                                  style: AppTextStyles.bodyLarge
+                                      .copyWith(color: AppColors.primaryDark),
                                 ),
                                 Text(
                                   msg['time'],
-                                  style: AppTextStyles.bodySmall,
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                      color: AppColors.primaryDark
+                                          .withOpacity(0.7)),
                                 ),
                               ],
                             ),
@@ -176,7 +179,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                 Expanded(
                                   child: Text(
                                     msg['lastMessage'],
-                                    style: AppTextStyles.bodySmall,
+                                    style: AppTextStyles.bodySmall
+                                        .copyWith(color: AppColors.primaryDark),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
