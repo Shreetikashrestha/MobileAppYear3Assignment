@@ -50,7 +50,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     ref.read(registerViewModelProvider.notifier).register(user);
   }
 
-
   @override
   Widget build(BuildContext context) {
     final registerState = ref.watch(registerViewModelProvider);
@@ -60,7 +59,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       next.when(
         data: (user) {
           if (user != null) {
-            SnackbarUtils.showSuccess(context, 'Signup successful. Please log in.');
+            SnackbarUtils.showSuccess(
+                context, 'Signup successful. Please log in.');
             Navigator.pushReplacementNamed(context, '/login');
           }
         },
@@ -101,24 +101,26 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     'Sign Up',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: const Color(0xFF4C1D95),
                         ),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      Text('Already have an account?',
-                          style: TextStyle(color: Colors.grey[700])),
+                      const Text('Already have an account?',
+                          style: TextStyle(color: Color(0xFF4C1D95))),
                       TextButton(
                         onPressed: () =>
                             Navigator.pushReplacementNamed(context, '/login'),
                         child: const Text('Login',
-                            style: TextStyle(color: Colors.purple)),
+                            style: TextStyle(color: Color(0xFF7C3AED))),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Text('I am a:'),
+                  const Text('I am a:',
+                      style: TextStyle(color: Color(0xFF4C1D95))),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -130,7 +132,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             decoration: BoxDecoration(
                               border: Border.all(
                                 color: _selectedRole == 0
-                                    ? Colors.purple
+                                    ? const Color(0xFF7C3AED)
                                     : Colors.grey.shade300,
                                 width: 2,
                               ),
@@ -141,13 +143,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               children: [
                                 Icon(Icons.person_outline,
                                     color: _selectedRole == 0
-                                        ? Colors.purple
+                                        ? const Color(0xFF7C3AED)
                                         : Colors.grey),
                                 const SizedBox(height: 4),
                                 Text('Influencer',
                                     style: TextStyle(
                                         color: _selectedRole == 0
-                                            ? Colors.purple
+                                            ? const Color(0xFF4C1D95)
                                             : Colors.grey)),
                               ],
                             ),
@@ -163,7 +165,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             decoration: BoxDecoration(
                               border: Border.all(
                                 color: _selectedRole == 1
-                                    ? Colors.purple
+                                    ? const Color(0xFF7C3AED)
                                     : Colors.grey.shade300,
                                 width: 2,
                               ),
@@ -174,13 +176,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               children: [
                                 Icon(Icons.work_outline,
                                     color: _selectedRole == 1
-                                        ? Colors.purple
+                                        ? const Color(0xFF7C3AED)
                                         : Colors.grey),
                                 const SizedBox(height: 4),
                                 Text('Brand',
                                     style: TextStyle(
                                         color: _selectedRole == 1
-                                            ? Colors.purple
+                                            ? const Color(0xFF4C1D95)
                                             : Colors.grey)),
                               ],
                             ),
@@ -192,9 +194,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   const SizedBox(height: 20),
                   TextFormField(
                     controller: fullNameController,
+                    style: const TextStyle(color: Color(0xFF4C1D95)),
                     decoration: InputDecoration(
                       hintText: 'Enter your name',
-                      prefixIcon: const Icon(Icons.person_outline),
+                      hintStyle: TextStyle(
+                          color: const Color(0xFF4C1D95).withOpacity(0.5)),
+                      prefixIcon: const Icon(Icons.person_outline,
+                          color: Color(0xFF7C3AED)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -205,9 +211,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: emailController,
+                    style: const TextStyle(color: Color(0xFF4C1D95)),
                     decoration: InputDecoration(
                       hintText: 'Enter your email',
-                      prefixIcon: const Icon(Icons.email_outlined),
+                      hintStyle: TextStyle(
+                          color: const Color(0xFF4C1D95).withOpacity(0.5)),
+                      prefixIcon: const Icon(Icons.email_outlined,
+                          color: Color(0xFF7C3AED)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -220,13 +230,19 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   TextFormField(
                     controller: passwordController,
                     obscureText: _obscurePassword,
+                    style: const TextStyle(color: Color(0xFF4C1D95)),
                     decoration: InputDecoration(
                       hintText: 'Enter your password',
-                      prefixIcon: const Icon(Icons.lock_outline),
+                      hintStyle: TextStyle(
+                          color: const Color(0xFF4C1D95).withOpacity(0.5)),
+                      prefixIcon: const Icon(Icons.lock_outline,
+                          color: Color(0xFF7C3AED)),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined),
+                        icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: const Color(0xFF7C3AED)),
                         onPressed: () => setState(
                             () => _obscurePassword = !_obscurePassword),
                       ),
