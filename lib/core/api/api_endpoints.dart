@@ -3,10 +3,12 @@ import 'dart:io';
 
 class ApiEndpoints {
   ApiEndpoints._();
+
   /// Set to true when running on a physical device. Then set compIpAddress to your computer's IP (same WiFi).
-  static const bool isPhysicalDevice = false;
+  static const bool isPhysicalDevice = true;
+
   /// Your computer's IP for physical device testing (e.g. from ifconfig). Only used when isPhysicalDevice is true.
-  static const String compIpAddress = "192.168.1.1";
+  static const String compIpAddress = "192.168.18.52";
 
   static String get baseUrl {
     if (isPhysicalDevice) {
@@ -52,8 +54,10 @@ class ApiEndpoints {
   static String get applications => '$baseUrl/applications';
   static String applicationById(String id) => '$baseUrl/applications/$id';
   static String get myApplications => '$baseUrl/applications/my-applications';
-  static String campaignApplications(String campaignId) => '$baseUrl/applications/campaign/$campaignId';
-  static String updateApplicationStatus(String id) => '$baseUrl/applications/$id/status';
+  static String campaignApplications(String campaignId) =>
+      '$baseUrl/applications/campaign/$campaignId';
+  static String updateApplicationStatus(String id) =>
+      '$baseUrl/applications/$id/status';
 
   // ==================== NOTIFICATION ENDPOINTS ====================
   static String get notifications => '$baseUrl/notifications';
@@ -68,9 +72,9 @@ class ApiEndpoints {
   static String sendMessage(String userId) => '$baseUrl/messages/$userId';
 
   // ==================== INFLUENCER ENDPOINTS ====================
-  static String get influencers => '$baseUrl/users/influencers';
-  static String get getInfluencers => '$baseUrl/users/influencers';
-  static String influencerById(String id) => '$baseUrl/users/influencers/$id';
+  static String get influencers => '$baseUrl/profiles/influencers';
+  static String get getInfluencers => '$baseUrl/profiles/influencers';
+  static String influencerById(String id) => '$baseUrl/profiles/$id';
 
   // ==================== PAYMENT ENDPOINTS ====================
   static String get myTransactions => '$baseUrl/payments/transactions';
