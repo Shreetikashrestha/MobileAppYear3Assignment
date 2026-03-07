@@ -32,15 +32,21 @@ class _InfluencerDashboardScreenState
     final applicationState = ref.watch(applicationViewModelProvider);
     final totalApplications = applicationState.myApplications.length;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF1E1033) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.grey[100];
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: bgColor,
         elevation: 0,
         title: Row(
           children: [
-            const Text('Dashboard',
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            Text('Dashboard',
+                style:
+                    TextStyle(color: textColor, fontWeight: FontWeight.bold)),
             const SizedBox(width: 8),
             if (state.isLoading)
               const SizedBox(
@@ -52,11 +58,12 @@ class _InfluencerDashboardScreenState
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black),
-            onPressed: () => ref.read(campaignViewModelProvider.notifier).loadCampaigns(),
+            icon: Icon(Icons.refresh, color: textColor),
+            onPressed: () =>
+                ref.read(campaignViewModelProvider.notifier).loadCampaigns(),
           ),
           IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.black),
+            icon: Icon(Icons.notifications_none, color: textColor),
             onPressed: () {
               Navigator.push(
                 context,
@@ -71,7 +78,9 @@ class _InfluencerDashboardScreenState
       body: RefreshIndicator(
         onRefresh: () async {
           await ref.read(campaignViewModelProvider.notifier).loadCampaigns();
-          await ref.read(applicationViewModelProvider.notifier).getMyApplications();
+          await ref
+              .read(applicationViewModelProvider.notifier)
+              .getMyApplications();
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -82,15 +91,19 @@ class _InfluencerDashboardScreenState
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: cardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const TextField(
+                child: TextField(
+                  style: TextStyle(color: textColor),
                   decoration: InputDecoration(
                     hintText: 'Search campaigns...',
+                    hintStyle:
+                        TextStyle(color: isDark ? Colors.white54 : Colors.grey),
                     border: InputBorder.none,
-                    prefixIcon: Icon(Icons.search, color: Colors.grey),
-                    contentPadding: EdgeInsets.symmetric(vertical: 16),
+                    prefixIcon: Icon(Icons.search,
+                        color: isDark ? Colors.white54 : Colors.grey),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
               ),
@@ -160,8 +173,11 @@ class _InfluencerDashboardScreenState
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Available Campaigns',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('Available Campaigns',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: textColor)),
                   ElevatedButton.icon(
                     onPressed: () {
                       Navigator.push(
@@ -176,7 +192,8 @@ class _InfluencerDashboardScreenState
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                     ),
                   ),
                 ],
