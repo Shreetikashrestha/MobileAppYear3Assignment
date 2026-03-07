@@ -8,6 +8,7 @@ import 'package:influcollb_app/features/messages/presentation/widgets/message_in
 import 'package:influcollb_app/features/messages/presentation/pages/call_screen.dart';
 import 'package:influcollb_app/core/providers/core_providers.dart';
 import 'package:influcollb_app/features/influencer/presentation/pages/influencer_profile_screen.dart';
+import 'package:influcollb_app/core/services/permission/video_call_permission_service.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String? conversationId;
@@ -179,20 +180,37 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
             IconButton(
               icon: const Icon(Icons.videocam, color: Colors.black),
-              onPressed: () {
-                final otherParticipant = widget.conversation!.otherParticipant;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CallScreen(
-                      conversationId: widget.conversationId!,
-                      receiverId: otherParticipant.id,
-                      receiverName: otherParticipant.fullName,
-                      receiverAvatar: otherParticipant.profilePicture,
-                      isVideoCall: true,
-                    ),
-                  ),
-                );
+              onPressed: () async {
+                // Show permission explanation first
+                final shouldContinue = await VideoCallPermissionService.showPermissionExplanation(context);
+                
+                if (shouldContinue == true && mounted) {
+                  // Request permissions
+                  final hasPermissions = await VideoCallPermissionService.requestVideoCallPermissions(context);
+                  
+                  if (hasPermissions && mounted) {
+                    final otherParticipant = widget.conversation!.otherParticipant;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CallScreen(
+                          conversationId: widget.conversationId!,
+                          receiverId: otherParticipant.id,
+                          receiverName: otherParticipant.fullName,
+                          receiverAvatar: otherParticipant.profilePicture,
+                          isVideoCall: true,
+                        ),
+                      ),
+                    );
+                  } else if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Camera and microphone permissions are required for video calls'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                  }
+                }
               },
             ),
           ],
