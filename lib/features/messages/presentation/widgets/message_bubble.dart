@@ -18,7 +18,8 @@ class MessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           // Show avatar on left for other person's messages
@@ -58,7 +59,7 @@ class MessageBubble extends StatelessWidget {
           Flexible(
             child: Container(
               constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.7,
+                maxWidth: MediaQuery.of(context).size.width * 0.65,
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
@@ -90,7 +91,8 @@ class MessageBubble extends StatelessWidget {
                   ),
                   if (message.attachments.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    ...message.attachments.map((attachment) => _buildAttachment(attachment)),
+                    ...message.attachments
+                        .map((attachment) => _buildAttachment(attachment)),
                   ],
                   const SizedBox(height: 4),
                   Row(
@@ -108,7 +110,9 @@ class MessageBubble extends StatelessWidget {
                         Icon(
                           message.isRead ? Icons.done_all : Icons.done,
                           size: 14,
-                          color: message.isRead ? Colors.lightBlue[200] : Colors.white70,
+                          color: message.isRead
+                              ? Colors.lightBlue[200]
+                              : Colors.white70,
                         ),
                       ],
                     ],
@@ -117,7 +121,27 @@ class MessageBubble extends StatelessWidget {
               ),
             ),
           ),
-          if (isMe) const SizedBox(width: 8),
+          // Show avatar on right for my messages
+          if (isMe) ...[
+            const SizedBox(width: 8),
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: Colors.purple[100],
+              backgroundImage: message.sender.profilePicture != null
+                  ? NetworkImage(message.sender.profilePicture!)
+                  : null,
+              child: message.sender.profilePicture == null
+                  ? Text(
+                      message.sender.fullName[0].toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple,
+                      ),
+                    )
+                  : null,
+            ),
+          ],
         ],
       ),
     );
