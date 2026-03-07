@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:influcollb_app/core/services/call/call_service.dart';
+import 'package:influcollb_app/core/services/permission/video_call_permission_service.dart';
 
 /// Call screen for voice and video calls
 /// This is a placeholder UI - integrate with WebRTC/Agora/Twilio for production
@@ -32,8 +33,36 @@ class _CallScreenState extends State<CallScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize call
-    _initializeCall();
+    // Check permissions before initializing call
+    _checkPermissionsAndInitialize();
+  }
+
+  Future<void> _checkPermissionsAndInitialize() async {
+    // Check if permissions are already granted
+    bool hasPermissions = await VideoCallPermissionService.hasVideoCallPermissions();
+    
+    if (!hasPermissions) {
+      // Request permissions if not granted
+      if (mounted) {
+        hasPermissions = await VideoCallPermissionService.requestVideoCallPermissions(context);
+      }
+    }
+    
+    if (hasPermissions) {
+      // Initialize call if permissions are granted
+      await _initializeCall();
+    } else {
+      // Close screen if permissions are denied
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Camera and microphone permissions are required'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    }
   }
 
   Future<void> _initializeCall() async {
