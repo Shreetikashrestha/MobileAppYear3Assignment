@@ -32,16 +32,8 @@ class ApiClient {
           final isAuthRoute = options.path.contains('/auth/login') ||
               options.path.contains('/auth/register');
 
-          debugPrint('ApiClient Request: ${options.method} ${options.path}');
-          debugPrint(
-              'ApiClient Token found: ${token != null && token.isNotEmpty}');
-
           if (token != null && token.isNotEmpty && !isAuthRoute) {
             options.headers['Authorization'] = 'Bearer $token';
-            debugPrint('ApiClient added Authorization header');
-          } else {
-            debugPrint(
-                'ApiClient NOT adding Authorization header. Reason: ${token == null ? 'Token is null' : token.isEmpty ? 'Token is empty' : 'Auth route'}');
           }
           return handler.next(options);
         },
