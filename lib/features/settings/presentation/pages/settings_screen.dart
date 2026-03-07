@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:influcollb_app/core/providers/core_providers.dart';
+import 'package:influcollb_app/core/providers/shared_preferences_provider.dart';
 import 'package:influcollb_app/features/auth/presentation/view_model/auth_providers.dart';
-import 'package:influcollb_app/features/profile/data/datasources/profile_remote_datasource.dart';
+import 'package:influcollb_app/core/usecases/usecase.dart';
+import 'package:influcollb_app/features/auth/presentation/pages/login_screen.dart';
 import 'package:influcollb_app/core/providers/api_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -16,7 +18,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
-  
+
   String _selectedTimezone = 'Asia/Kathmandu';
   bool _emailNotifications = true;
   bool _pushNotifications = true;
@@ -61,12 +63,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final dio = ref.read(dioProvider);
-      final dataSource = ProfileRemoteDataSource(apiClient: dio);
-      
-      await dataSource.updateProfile(
-        fullName: _fullNameController.text,
-        email: _emailController.text,
+      final apiClient = ref.read(apiClientProvider);
+
+      await apiClient.put(
+        '/api/users/update',
+        data: {
+          'fullName': _fullNameController.text,
+          'email': _emailController.text,
+        },
       );
 
       // Update session
@@ -104,7 +108,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _saveNotificationPreference(String key, bool value) async {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setBool(key, value);
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -135,10 +139,54 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
 
-    if (confirmed == true) {
-      await ref.read(authViewModelProvider.notifier).logout();
-      if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+    if (confirmed == true && mounted) {
+      try {
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+
+        // Call logout usecase
+        final logoutUseCase = ref.read(logoutUseCaseProvider);
+        final result = await logoutUseCase(NoParams());
+
+        if (mounted) {
+          // Close loading dialog
+          Navigator.pop(context);
+
+          result.fold(
+            (failure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Logout failed: ${failure.message}'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+            (success) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => const LoginScreen(),
+                ),
+                (route) => false,
+              );
+            },
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Logout failed: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -204,7 +252,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Colors.blue, width: 2),
+                          borderSide:
+                              const BorderSide(color: Colors.blue, width: 2),
                         ),
                       ),
                       validator: (value) {
@@ -227,7 +276,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Colors.blue, width: 2),
+                          borderSide:
+                              const BorderSide(color: Colors.blue, width: 2),
                         ),
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -254,7 +304,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Colors.blue, width: 2),
+                          borderSide:
+                              const BorderSide(color: Colors.blue, width: 2),
                         ),
                       ),
                       items: _timezones.map((tz) {
@@ -286,7 +337,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
                                 ),
                               )
                             : const Text(
@@ -302,9 +354,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Notification Preferences Card
             _buildSectionCard(
               title: 'Notification Preferences',
@@ -331,7 +383,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   _buildToggleTile(
                     title: 'Marketplace Updates',
-                    subtitle: 'Get notified about new campaigns and opportunities',
+                    subtitle:
+                        'Get notified about new campaigns and opportunities',
                     value: _marketplaceUpdates,
                     onChanged: (value) {
                       setState(() => _marketplaceUpdates = value);
@@ -351,9 +404,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Logout Button
             Container(
               decoration: BoxDecoration(
@@ -368,7 +421,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
               child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -388,7 +442,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onTap: _handleLogout,
               ),
             ),
-            
+
             const SizedBox(height: 32),
           ],
         ),
