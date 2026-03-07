@@ -5,6 +5,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:influcollb_app/core/services/storage/user_session_service.dart';
+import 'package:influcollb_app/core/services/sensor/biometric_auth_service.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:influcollb_app/core/api/api_endpoints.dart';
 import 'package:influcollb_app/features/profile/presentation/pages/edit_profile_screen.dart';
@@ -70,11 +72,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   bool _showFullBio = false;
   double _profileCompletion = 0.0;
 
+  // Biometric state
+  final BiometricAuthService _biometricService = BiometricAuthService();
+  bool _isBiometricAvailable = false;
+  bool _isBiometricEnrolled = false;
+  List<BiometricType> _availableBiometrics = [];
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadUserProfile();
+    _checkBiometricStatus();
   }
 
   @override
@@ -102,19 +111,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       if (targetUserId != null) {
         // Load from backend
         final apiService = ref.read(apiServiceProvider);
-        final profileData = await apiService.getUserProfile(userId: targetUserId);
+        final profileData =
+            await apiService.getUserProfile(userId: targetUserId);
 
         // Load from local storage
         final bio = prefs.getString('profile_bio_$targetUserId') ?? '';
-        final categoriesJson = prefs.getString('profile_categories_$targetUserId');
-        final languagesJson = prefs.getString('profile_languages_$targetUserId');
+        final categoriesJson =
+            prefs.getString('profile_categories_$targetUserId');
+        final languagesJson =
+            prefs.getString('profile_languages_$targetUserId');
         final socialChannelsJson =
             prefs.getString('profile_social_channels_$targetUserId');
 
         if (mounted) {
           debugPrint('📱 Backend - Full name: ${profileData['fullName']}');
           debugPrint('📱 Backend - Email: ${profileData['email']}');
-          debugPrint('📱 Backend - Profile picture: ${profileData['profilePicture']}');
+          debugPrint(
+              '📱 Backend - Profile picture: ${profileData['profilePicture']}');
           debugPrint('📱 Local - Bio: $bio');
 
           setState(() {
@@ -140,10 +153,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             // Local storage data
             userBio = bio;
             categories = categoriesJson != null
-                ? List<String>.from(categoriesJson.split(',').where((c) => c.isNotEmpty))
+                ? List<String>.from(
+                    categoriesJson.split(',').where((c) => c.isNotEmpty))
                 : [];
             languages = languagesJson != null
-                ? List<String>.from(languagesJson.split(',').where((l) => l.isNotEmpty))
+                ? List<String>.from(
+                    languagesJson.split(',').where((l) => l.isNotEmpty))
                 : [];
 
             if (socialChannelsJson != null) {
@@ -159,15 +174,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           // Calculate profile completion percentage
           if (widget.userId == null) {
             int completedFields = 0;
-            int totalFields = 6; // name, email, picture, bio, categories, languages
-            
+            int totalFields =
+                6; // name, email, picture, bio, categories, languages
+
             if (userName.isNotEmpty && userName != 'User') completedFields++;
             if (userEmail.isNotEmpty) completedFields++;
-            if (profilePicUrl != null && profilePicUrl!.isNotEmpty) completedFields++;
+            if (profilePicUrl != null && profilePicUrl!.isNotEmpty)
+              completedFields++;
             if (userBio.isNotEmpty) completedFields++;
             if (categories.isNotEmpty) completedFields++;
             if (languages.isNotEmpty) completedFields++;
-            
+
             setState(() {
               _profileCompletion = completedFields / totalFields;
             });
@@ -178,9 +195,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         if (widget.userId == null) {
           try {
             final apiClient = ref.read(apiClientProvider);
-            final statsResponse = await apiClient.get('/api/campaigns/brand-stats');
-            if (statsResponse.statusCode == 200 && 
-                statsResponse.data['success'] == true && 
+            final statsResponse =
+                await apiClient.get('/api/campaigns/brand-stats');
+            if (statsResponse.statusCode == 200 &&
+                statsResponse.data['success'] == true &&
                 statsResponse.data['data'] != null) {
               final stats = statsResponse.data['data'];
               if (mounted) {
@@ -188,7 +206,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   campaigns = stats['totalCampaigns'] ?? 0;
                   followers = stats['totalApplicants'] ?? 0;
                   following = stats['acceptedInfluencers'] ?? 0;
-                  
+
                   // Load analytics data
                   profileViews = stats['profileViews'] ?? 0;
                   engagementRate = (stats['engagementRate'] ?? 0.0).toDouble();
@@ -199,7 +217,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           } catch (e) {
             debugPrint('Error loading brand stats: $e');
           }
-          
+
           // Load application history data
           _loadApplicationHistory();
         }
@@ -215,10 +233,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     try {
       // Load my applications to get counts
       await ref.read(applicationViewModelProvider.notifier).getMyApplications();
-      
+
       final applicationState = ref.read(applicationViewModelProvider);
       final applications = applicationState.myApplications;
-      
+
       if (mounted) {
         setState(() {
           pendingApplications = applications
@@ -529,10 +547,134 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         if (mounted) {
           // Close loading dialog if still open
           Navigator.pop(context);
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Logout error: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _checkBiometricStatus() async {
+    final isAvailable = await _biometricService.isBiometricAvailable();
+    final biometrics = await _biometricService.getAvailableBiometrics();
+    final prefs = await SharedPreferences.getInstance();
+    final enrolled = prefs.getBool('biometric_enrolled') ?? false;
+
+    if (mounted) {
+      setState(() {
+        _isBiometricAvailable = isAvailable && biometrics.isNotEmpty;
+        _isBiometricEnrolled = enrolled;
+        _availableBiometrics = biometrics;
+      });
+    }
+  }
+
+  String _getBiometricName() {
+    if (_availableBiometrics.isEmpty) return 'Biometric';
+    if (_availableBiometrics.contains(BiometricType.face)) {
+      return 'Face ID';
+    } else if (_availableBiometrics.contains(BiometricType.fingerprint)) {
+      return 'Fingerprint';
+    }
+    return 'Biometric';
+  }
+
+  IconData _getBiometricIcon() {
+    if (_availableBiometrics.isEmpty) return Icons.fingerprint;
+    if (_availableBiometrics.contains(BiometricType.face)) {
+      return Icons.face;
+    } else if (_availableBiometrics.contains(BiometricType.fingerprint)) {
+      return Icons.fingerprint;
+    }
+    return Icons.security;
+  }
+
+  Future<void> _toggleBiometric() async {
+    if (_isBiometricEnrolled) {
+      // Disable biometric
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Disable Biometric Login'),
+          content: Text(
+              'Are you sure you want to disable ${_getBiometricName()} login?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Disable'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('biometric_enrolled', false);
+        await prefs.remove('saved_email');
+        await prefs.remove('saved_password');
+
+        if (mounted) {
+          setState(() => _isBiometricEnrolled = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${_getBiometricName()} login disabled'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } else {
+      // Enable biometric - authenticate first
+      final authenticated = await _biometricService.authenticate(
+        reason: 'Authenticate to enable ${_getBiometricName()} login',
+        useErrorDialogs: true,
+        stickyAuth: true,
+      );
+
+      if (authenticated) {
+        final prefs = await SharedPreferences.getInstance();
+        final savedEmail = prefs.getString('saved_email');
+        final savedPassword = prefs.getString('saved_password');
+
+        // Check if we have credentials to save
+        if (savedEmail != null && savedPassword != null) {
+          await prefs.setBool('biometric_enrolled', true);
+          if (mounted) {
+            setState(() => _isBiometricEnrolled = true);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('${_getBiometricName()} login enabled!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } else {
+          // Need to save credentials first
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                    'Please log in with your password first, then enable biometric login'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${_getBiometricName()} authentication failed'),
               backgroundColor: Colors.red,
             ),
           );
@@ -546,7 +688,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       final prefs = await SharedPreferences.getInstance();
       final userSessionService = UserSessionService(prefs: prefs);
       final userId = userSessionService.getCurrentUserId();
-      
+
       if (userId != null) {
         final profileLink = 'https://influcollab.com/profile/$userId';
         await Share.share('Check out my profile on InfluCollab: $profileLink');
@@ -574,7 +716,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       final prefs = await SharedPreferences.getInstance();
       final userSessionService = UserSessionService(prefs: prefs);
       final userId = userSessionService.getCurrentUserId();
-      
+
       if (userId != null) {
         final profileLink = 'https://influcollab.com/profile/$userId';
         // Using Share.share as a workaround for clipboard
@@ -655,50 +797,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   _copyToClipboard();
                 },
               ),
-              const Divider(height: 1),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.purple.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(Icons.qr_code, color: Colors.purple[700]),
-                ),
-                title: const Text('QR Code'),
-                subtitle: const Text('Generate profile QR code'),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('QR code generation coming soon!'),
-                      backgroundColor: Colors.purple[400],
-                    ),
-                  );
-                },
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(Icons.download, color: Colors.orange[700]),
-                ),
-                title: const Text('Export Profile'),
-                subtitle: const Text('Download profile as PDF'),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Profile export coming soon!'),
-                      backgroundColor: Colors.orange[400],
-                    ),
-                  );
-                },
-              ),
               const SizedBox(height: 8),
             ],
           ),
@@ -709,26 +807,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final bgColor = isDark ? const Color(0xFF1E1033) : Colors.grey[50];
+    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: cardColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           widget.userId == null ? 'My Profile' : 'Profile',
-          style: const TextStyle(
-            color: Colors.black,
+          style: TextStyle(
+            color: textColor,
             fontWeight: FontWeight.w600,
           ),
         ),
         actions: [
           if (widget.userId == null)
             IconButton(
-              icon: const Icon(Icons.notifications_outlined, color: Colors.black),
+              icon: Icon(Icons.notifications_outlined, color: textColor),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -740,12 +843,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             ),
           if (widget.userId == null)
             IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.black),
+              icon: Icon(Icons.refresh, color: textColor),
               onPressed: _handleRefresh,
             ),
           if (widget.userId == null)
             IconButton(
-              icon: const Icon(Icons.share, color: Colors.black),
+              icon: Icon(Icons.share, color: textColor),
               onPressed: _showShareOptions,
             ),
           if (widget.userId == null)
@@ -770,7 +873,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           : RefreshIndicator(
               onRefresh: _handleRefresh,
               color: AppColors.primary,
-              backgroundColor: Colors.white,
+              backgroundColor: cardColor,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
@@ -785,17 +888,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     const SizedBox(height: 16),
                     if (userBio.isNotEmpty) _buildBioSection(),
                     if (userBio.isNotEmpty) const SizedBox(height: 16),
-                    if (widget.userId == null && _profileCompletion < 0.8) _buildProfileTipsSection(),
-                    if (widget.userId == null && _profileCompletion < 0.8) const SizedBox(height: 16),
+                    if (widget.userId == null && _profileCompletion < 0.8)
+                      _buildProfileTipsSection(),
+                    if (widget.userId == null && _profileCompletion < 0.8)
+                      const SizedBox(height: 16),
                     if (categories.isNotEmpty) _buildCategoriesSection(),
                     if (categories.isNotEmpty) const SizedBox(height: 16),
                     if (languages.isNotEmpty) _buildLanguagesSection(),
                     if (languages.isNotEmpty) const SizedBox(height: 16),
-                    if (socialChannels.isNotEmpty) _buildSocialChannelsSection(),
+                    if (socialChannels.isNotEmpty)
+                      _buildSocialChannelsSection(),
                     if (socialChannels.isNotEmpty) const SizedBox(height: 16),
                     if (widget.userId == null) _buildActionButtons(),
                     if (widget.userId == null) const SizedBox(height: 16),
-                    if (widget.userId == null) _buildApplicationHistorySection(),
+                    if (widget.userId == null)
+                      _buildApplicationHistorySection(),
+                    if (widget.userId == null) const SizedBox(height: 16),
+                    if (widget.userId == null) _buildBiometricSection(),
+                    if (widget.userId == null) const SizedBox(height: 16),
+                    if (widget.userId == null) _buildShakeToToggleSection(),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -805,11 +916,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Widget _buildAnalyticsSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -837,7 +952,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 ),
               ),
               const SizedBox(width: 12),
-              const Text('Profile Analytics', style: AppTextStyles.heading4),
+              Text('Profile Analytics',
+                  style: AppTextStyles.heading4.copyWith(color: textColor)),
             ],
           ),
           const SizedBox(height: 16),
@@ -855,7 +971,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               Expanded(
                 child: _buildAnalyticItem(
                   'Engagement',
-                  engagementRate > 0 ? '${engagementRate.toStringAsFixed(1)}%' : '0%',
+                  engagementRate > 0
+                      ? '${engagementRate.toStringAsFixed(1)}%'
+                      : '0%',
                   Icons.trending_up,
                   Colors.green,
                 ),
@@ -868,7 +986,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               Expanded(
                 child: _buildAnalyticItem(
                   'Response Rate',
-                  responseRate > 0 ? '${responseRate.toStringAsFixed(0)}%' : '0%',
+                  responseRate > 0
+                      ? '${responseRate.toStringAsFixed(0)}%'
+                      : '0%',
                   Icons.chat_bubble,
                   Colors.orange,
                 ),
@@ -899,6 +1019,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     IconData icon,
     Color color,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final labelColor = isDark ? Colors.white70 : Colors.grey[600];
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -931,7 +1054,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  color: labelColor,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -952,11 +1075,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Widget _buildStatsSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
+    final dividerColor = isDark ? Colors.white24 : Colors.grey[200];
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -973,13 +1100,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           Container(
             width: 1,
             height: 60,
-            color: Colors.grey[200],
+            color: dividerColor,
           ),
           _buildStatItem('$following', 'Following', Icons.person_add),
           Container(
             width: 1,
             height: 60,
-            color: Colors.grey[200],
+            color: dividerColor,
           ),
           _buildStatItem('$campaigns', 'Campaigns', Icons.campaign),
         ],
@@ -988,6 +1115,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Widget _buildStatItem(String value, String label, IconData icon) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final labelColor = isDark ? Colors.white70 : Colors.grey[600];
+
     return Expanded(
       child: Column(
         children: [
@@ -1017,7 +1147,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             label,
             style: TextStyle(
               fontSize: 11,
-              color: Colors.grey[600],
+              color: labelColor,
               fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
@@ -1028,12 +1158,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Widget _buildProfileHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.primary.withValues(alpha: 0.1), Colors.white],
+          colors: [AppColors.primary.withValues(alpha: 0.1), cardColor],
         ),
       ),
       padding: const EdgeInsets.all(24),
@@ -1153,7 +1287,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -1182,72 +1317,77 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 ),
               ),
             ),
-            // Profile completion indicator
-            if (widget.userId == null && _profileCompletion > 0)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: LinearProgressIndicator(
-                            value: _profileCompletion,
-                            backgroundColor: Colors.grey[200],
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              _profileCompletion >= 0.8
-                                  ? Colors.green
-                                  : _profileCompletion >= 0.5
-                                      ? Colors.orange
-                                      : Colors.orangeAccent,
-                            ),
-                            minHeight: 8,
-                            borderRadius: BorderRadius.circular(4),
+          // Profile completion indicator
+          if (widget.userId == null && _profileCompletion > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: LinearProgressIndicator(
+                          value: _profileCompletion,
+                          backgroundColor: Colors.grey[200],
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            _profileCompletion >= 0.8
+                                ? Colors.green
+                                : _profileCompletion >= 0.5
+                                    ? Colors.orange
+                                    : Colors.orangeAccent,
                           ),
+                          minHeight: 8,
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                        const SizedBox(width: 12),
-                        Text(
-                          '${(_profileCompletion * 100).toInt()}%',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Profile ${(_profileCompletion * 100).toInt()}% complete',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey,
                       ),
+                      const SizedBox(width: 12),
+                      Text(
+                        '${(_profileCompletion * 100).toInt()}%',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Profile ${(_profileCompletion * 100).toInt()}% complete',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.white70 : Colors.grey,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
         ],
       ),
     );
   }
 
   Widget _buildBasicInfoSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final labelColor = isDark ? Colors.white70 : Colors.grey[600];
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Contact Information', style: AppTextStyles.heading4),
+          Text('Contact Information',
+              style: AppTextStyles.heading4.copyWith(color: textColor)),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -1259,13 +1399,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   children: [
                     Text('Email',
                         style: TextStyle(
-                            color: Colors.grey[600],
+                            color: labelColor,
                             fontSize: 12,
                             fontWeight: FontWeight.w500)),
                     const SizedBox(height: 2),
                     Text(userEmail,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 14),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: textColor),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis),
                   ],
@@ -1280,7 +1422,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   Widget _buildProfileTipsSection() {
     final tips = <Map<String, dynamic>>[];
-    
+
     if (userBio.isEmpty) {
       tips.add({
         'icon': Icons.description,
@@ -1290,7 +1432,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         'color': Colors.blue,
       });
     }
-    
+
     if (categories.isEmpty) {
       tips.add({
         'icon': Icons.category,
@@ -1300,7 +1442,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         'color': Colors.green,
       });
     }
-    
+
     if (languages.isEmpty) {
       tips.add({
         'icon': Icons.language,
@@ -1310,7 +1452,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         'color': Colors.purple,
       });
     }
-    
+
     if (socialChannels.isEmpty) {
       tips.add({
         'icon': Icons.share,
@@ -1320,9 +1462,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         'color': Colors.orange,
       });
     }
-    
+
     if (tips.isEmpty) return const SizedBox.shrink();
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
@@ -1421,7 +1563,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: tip['color'],
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -1445,27 +1588,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Widget _buildBioSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final bodyColor = isDark ? Colors.white70 : Colors.grey[700];
+
     final isBioLong = userBio.length > 150;
-    final displayBio = _showFullBio ? userBio : (isBioLong ? userBio.substring(0, 150) + '...' : userBio);
-    
+    final displayBio = _showFullBio
+        ? userBio
+        : (isBioLong ? userBio.substring(0, 150) + '...' : userBio);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('About', style: AppTextStyles.heading4),
+          Text('About',
+              style: AppTextStyles.heading4.copyWith(color: textColor)),
           const SizedBox(height: 12),
-          Text(displayBio,
-              style: TextStyle(color: Colors.grey[700], height: 1.5)),
+          Text(displayBio, style: TextStyle(color: bodyColor, height: 1.5)),
           if (isBioLong)
             Padding(
               padding: const EdgeInsets.only(top: 12),
@@ -1487,11 +1636,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Widget _buildCategoriesSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -1519,7 +1672,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 ),
               ),
               const SizedBox(width: 12),
-              const Text('Content Categories', style: AppTextStyles.heading4),
+              Text('Content Categories',
+                  style: AppTextStyles.heading4.copyWith(color: textColor)),
             ],
           ),
           const SizedBox(height: 16),
@@ -1555,11 +1709,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Widget _buildLanguagesSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -1587,7 +1745,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 ),
               ),
               const SizedBox(width: 12),
-              const Text('Languages', style: AppTextStyles.heading4),
+              Text('Languages',
+                  style: AppTextStyles.heading4.copyWith(color: textColor)),
             ],
           ),
           const SizedBox(height: 16),
@@ -1623,11 +1782,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Widget _buildSocialChannelsSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -1655,7 +1818,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 ),
               ),
               const SizedBox(width: 12),
-              const Text('Social Media', style: AppTextStyles.heading4),
+              Text('Social Media',
+                  style: AppTextStyles.heading4.copyWith(color: textColor)),
             ],
           ),
           const SizedBox(height: 16),
@@ -1794,11 +1958,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   Widget _buildApplicationHistorySection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -1829,11 +1997,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     'Application History',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: textColor,
                     ),
                   ),
                 ],
@@ -1935,9 +2104,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           Expanded(
             child: Text(
               status,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
               ),
             ),
           ),
@@ -1954,7 +2126,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  Widget _buildQuickAction(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildQuickAction(
+      IconData icon, String label, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -1982,6 +2155,168 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
+  Widget _buildBiometricSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final subBgColor = isDark ? const Color(0xFF1E1033) : Colors.grey[50];
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFB16CEA), Color(0xFFFF5E69)],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  _getBiometricIcon(),
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Security',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (!_isBiometricAvailable)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.orange.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: Colors.orange[700],
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Biometric authentication is not available on this device. Please enable Face ID or Touch ID in your device settings.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.orange[800],
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _isBiometricEnrolled
+                      ? Colors.green.withValues(alpha: 0.3)
+                      : Colors.grey.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: _isBiometricEnrolled
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.grey.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      _getBiometricIcon(),
+                      color: _isBiometricEnrolled
+                          ? Colors.green
+                          : Colors.grey[600],
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${_getBiometricName()} Login',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _isBiometricEnrolled
+                              ? 'Enabled - Tap to disable'
+                              : 'Tap to enable quick login',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark ? Colors.white70 : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: _isBiometricEnrolled,
+                    onChanged: (_) => _toggleBiometric(),
+                    activeColor: const Color(0xFFB16CEA),
+                  ),
+                ],
+              ),
+            ),
+          if (!_isBiometricEnrolled) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Enable ${_getBiometricName()} to quickly and securely access your account without typing your password.',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+                height: 1.4,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildActionButtons() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1999,7 +2334,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       ),
                     );
                   },
-                  icon: const Icon(Icons.insights, size: 18, color: Colors.white),
+                  icon:
+                      const Icon(Icons.insights, size: 18, color: Colors.white),
                   label: const Text(
                     'Insights',
                     style: TextStyle(
@@ -2095,6 +2431,277 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildShakeToToggleSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF16213E) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? [const Color(0xFF1A1A2E), const Color(0xFF7B2CBF)]
+                        : [const Color(0xFFFFB347), const Color(0xFF7B2CBF)],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  isDark ? Icons.dark_mode : Icons.light_mode,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Shake Gesture',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.purple.withValues(alpha: 0.2)
+                      : Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.sensors,
+                      size: 14,
+                      color: isDark ? Colors.purple[300] : Colors.orange[700],
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Sensor',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.purple[300] : Colors.orange[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [
+                        const Color(0xFF1A1A2E).withValues(alpha: 0.5),
+                        const Color(0xFF7B2CBF).withValues(alpha: 0.1)
+                      ]
+                    : [
+                        const Color(0xFFFFB347).withValues(alpha: 0.1),
+                        const Color(0xFF7B2CBF).withValues(alpha: 0.05)
+                      ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFF7B2CBF).withValues(alpha: 0.3)
+                    : const Color(0xFFFFB347).withValues(alpha: 0.3),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    // Animated shake icon
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF7B2CBF).withValues(alpha: 0.2)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (isDark
+                                    ? const Color(0xFF7B2CBF)
+                                    : const Color(0xFFFFB347))
+                                .withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.vibration,
+                        color: isDark ? Colors.purple[300] : Colors.orange[700],
+                        size: 32,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Shake 3 Times',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Toggle between Dark & Light mode by shaking your phone 3 times',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF64748B),
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Current mode indicator
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.3)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isDark ? Icons.dark_mode : Icons.light_mode,
+                        color: isDark ? Colors.purple[300] : Colors.orange[700],
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Current Mode: ${isDark ? "Dark" : "Light"}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color:
+                              isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // How it works
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildShakeStep('1', 'Shake', Icons.vibration),
+                    Icon(
+                      Icons.arrow_forward,
+                      color: isDark ? Colors.white38 : Colors.grey[400],
+                      size: 16,
+                    ),
+                    _buildShakeStep('2', 'Shake', Icons.vibration),
+                    Icon(
+                      Icons.arrow_forward,
+                      color: isDark ? Colors.white38 : Colors.grey[400],
+                      size: 16,
+                    ),
+                    _buildShakeStep('3', 'Shake', Icons.vibration),
+                    Icon(
+                      Icons.arrow_forward,
+                      color: isDark ? Colors.white38 : Colors.grey[400],
+                      size: 16,
+                    ),
+                    _buildShakeStep('✓', isDark ? 'Light' : 'Dark',
+                        isDark ? Icons.light_mode : Icons.dark_mode),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShakeStep(String step, String label, IconData icon) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: isDark
+                ? const Color(0xFF7B2CBF).withValues(alpha: 0.3)
+                : const Color(0xFFFFB347).withValues(alpha: 0.2),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: step == '✓'
+                ? Icon(icon,
+                    size: 18,
+                    color: isDark ? Colors.purple[300] : Colors.orange[700])
+                : Text(
+                    step,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.purple[300] : Colors.orange[700],
+                    ),
+                  ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 9,
+            color: isDark ? Colors.white54 : Colors.grey[600],
+          ),
+        ),
+      ],
     );
   }
 }
