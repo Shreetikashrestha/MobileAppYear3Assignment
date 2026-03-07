@@ -4,7 +4,6 @@ import 'package:influcollb_app/features/campaign/presentation/view_model/campaig
 import 'package:influcollb_app/features/campaign/presentation/pages/create_campaign_screen.dart';
 import 'package:influcollb_app/features/campaign/presentation/pages/comprehensive_campaign_detail_screen.dart';
 import 'package:influcollb_app/features/notification/presentation/pages/notifications_screen.dart';
-import 'package:influcollb_app/features/analytics/presentation/pages/analytics_screen.dart';
 import 'package:influcollb_app/features/application/presentation/pages/all_brand_applications_screen.dart';
 import 'package:influcollb_app/core/providers/core_providers.dart';
 import 'package:intl/intl.dart';
@@ -13,7 +12,8 @@ class BrandDashboardScreen extends ConsumerStatefulWidget {
   const BrandDashboardScreen({super.key});
 
   @override
-  ConsumerState<BrandDashboardScreen> createState() => _BrandDashboardScreenState();
+  ConsumerState<BrandDashboardScreen> createState() =>
+      _BrandDashboardScreenState();
 }
 
 class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
@@ -39,28 +39,37 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(campaignViewModelProvider);
     final campaigns = state.myBrandCampaigns;
-    final sessionService = ref.read(userSessionServiceProvider);
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF1E1033) : const Color(0xFFFCFCFD);
+    final textColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
 
     // Calculate stats
     final activeCampaigns = campaigns.where((c) => c.status == 'active').length;
-    final totalApplicants = campaigns.fold<int>(0, (sum, c) => sum + c.applicantsCount);
-    final totalBudget = campaigns.fold<int>(0, (sum, c) => sum + (c.budgetMax?.toInt() ?? 0));
+    final totalApplicants =
+        campaigns.fold<int>(0, (sum, c) => sum + c.applicantsCount);
+    final totalBudget =
+        campaigns.fold<int>(0, (sum, c) => sum + (c.budgetMax?.toInt() ?? 0));
 
     // Filter campaigns
     final filteredCampaigns = campaigns.where((c) {
       final matchSearch = _searchTerm.isEmpty ||
           c.title.toLowerCase().contains(_searchTerm.toLowerCase()) ||
-          (c.category?.toLowerCase().contains(_searchTerm.toLowerCase()) ?? false);
+          (c.category?.toLowerCase().contains(_searchTerm.toLowerCase()) ??
+              false);
       final matchStatus = _statusFilter == 'all' || c.status == _statusFilter;
       return matchSearch && matchStatus;
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFCFCFD),
+      backgroundColor: bgColor,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            await ref.read(campaignViewModelProvider.notifier).loadMyBrandCampaigns();
+            await ref
+                .read(campaignViewModelProvider.notifier)
+                .loadMyBrandCampaigns();
           },
           child: CustomScrollView(
             slivers: [
@@ -74,13 +83,13 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                       // Title and Actions Row
                       Row(
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: Text(
                               'Campaign Dashboard',
                               style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w900,
-                                color: Color(0xFF0F172A),
+                                color: textColor,
                                 letterSpacing: -0.5,
                               ),
                             ),
@@ -88,7 +97,7 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                           // Notification Bell
                           Container(
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: cardColor,
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
@@ -101,13 +110,15 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                             child: Stack(
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.notifications_outlined, size: 20),
+                                  icon: const Icon(Icons.notifications_outlined,
+                                      size: 20),
                                   color: const Color(0xFF94A3B8),
                                   onPressed: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const NotificationsScreen(),
+                                        builder: (context) =>
+                                            const NotificationsScreen(),
                                       ),
                                     );
                                   },
@@ -121,7 +132,8 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                                     decoration: BoxDecoration(
                                       color: Colors.red,
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white, width: 2),
+                                      border: Border.all(
+                                          color: Colors.white, width: 2),
                                     ),
                                   ),
                                 ),
@@ -135,26 +147,32 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const CreateCampaignScreen(),
+                                  builder: (context) =>
+                                      const CreateCampaignScreen(),
                                 ),
                               ).then((_) {
-                                ref.read(campaignViewModelProvider.notifier).loadMyBrandCampaigns();
+                                ref
+                                    .read(campaignViewModelProvider.notifier)
+                                    .loadMyBrandCampaigns();
                               });
                             },
                             icon: const Icon(Icons.add, size: 16),
                             label: const Text(
                               'New Campaign',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 14),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF9333EA),
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               elevation: 0,
-                              shadowColor: const Color(0xFF9333EA).withOpacity(0.3),
+                              shadowColor:
+                                  const Color(0xFF9333EA).withOpacity(0.3),
                             ),
                           ),
                         ],
@@ -191,7 +209,8 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                               size: 20,
                             ),
                             border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 14),
                           ),
                           style: const TextStyle(
                             fontSize: 14,
@@ -230,7 +249,8 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const AllBrandApplicationsScreen(),
+                              builder: (context) =>
+                                  const AllBrandApplicationsScreen(),
                             ),
                           );
                         },
@@ -246,7 +266,9 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                       ),
                       _buildStatCard(
                         'Budget Allocated',
-                        state.isLoading ? '—' : 'NPR ${NumberFormat('#,###').format(totalBudget)}',
+                        state.isLoading
+                            ? '—'
+                            : 'NPR ${NumberFormat('#,###').format(totalBudget)}',
                         'combined max budget',
                         Icons.attach_money,
                         const Color(0xFF16A34A),
@@ -301,7 +323,8 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                           ),
                           // Status Filter
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
@@ -323,9 +346,13 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                                 color: Color(0xFF64748B),
                               ),
                               items: const [
-                                DropdownMenuItem(value: 'all', child: Text('All Campaigns')),
-                                DropdownMenuItem(value: 'active', child: Text('Active')),
-                                DropdownMenuItem(value: 'completed', child: Text('Completed')),
+                                DropdownMenuItem(
+                                    value: 'all', child: Text('All Campaigns')),
+                                DropdownMenuItem(
+                                    value: 'active', child: Text('Active')),
+                                DropdownMenuItem(
+                                    value: 'completed',
+                                    child: Text('Completed')),
                               ],
                               onChanged: (value) {
                                 setState(() => _statusFilter = value!);
@@ -374,7 +401,8 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                     (context, index) {
                       final campaign = filteredCampaigns[index];
                       return Padding(
-                        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 8),
+                        padding: const EdgeInsets.only(
+                            left: 20, right: 20, bottom: 8),
                         child: _buildCampaignCard(campaign),
                       );
                     },
@@ -441,30 +469,7 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                     size: 14,
                     color: Color(0xFF64748B),
                   ),
-                )
-              else
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AnalyticsScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.arrow_outward,
-                      size: 14,
-                      color: Color(0xFFCBD5E1),
-                    ),
                 ),
-              ),
             ],
           ),
           Column(
@@ -575,7 +580,9 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                     builder: (context) => const CreateCampaignScreen(),
                   ),
                 ).then((_) {
-                  ref.read(campaignViewModelProvider.notifier).loadMyBrandCampaigns();
+                  ref
+                      .read(campaignViewModelProvider.notifier)
+                      .loadMyBrandCampaigns();
                 });
               },
               icon: const Icon(Icons.add, size: 20),
@@ -586,7 +593,8 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF9333EA),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -618,7 +626,8 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ComprehensiveCampaignDetailScreen(campaignId: campaign.id),
+            builder: (context) =>
+                ComprehensiveCampaignDetailScreen(campaignId: campaign.id),
           ),
         );
       },
@@ -670,7 +679,8 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
                 ),
                 const SizedBox(width: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: statusBg,
                     borderRadius: BorderRadius.circular(8),
@@ -709,7 +719,8 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                _buildInfoChip(Icons.location_on, campaign.location ?? 'Remote'),
+                _buildInfoChip(
+                    Icons.location_on, campaign.location ?? 'Remote'),
                 const SizedBox(width: 12),
                 _buildInfoChip(Icons.category, campaign.category ?? 'General'),
               ],
@@ -718,7 +729,8 @@ class _BrandDashboardScreenState extends ConsumerState<BrandDashboardScreen> {
             // Only show applicants count (dynamic data from backend)
             Row(
               children: [
-                _buildMetric(Icons.people, campaign.applicantsCount.toString(), 'Applicants'),
+                _buildMetric(Icons.people, campaign.applicantsCount.toString(),
+                    'Applicants'),
               ],
             ),
           ],
