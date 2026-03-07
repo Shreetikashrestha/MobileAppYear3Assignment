@@ -38,8 +38,7 @@ class ApplicationState {
       isLoading: isLoading ?? this.isLoading,
       error: error,
       myApplications: myApplications ?? this.myApplications,
-      campaignApplications:
-          campaignApplications ?? this.campaignApplications,
+      campaignApplications: campaignApplications ?? this.campaignApplications,
       currentApplication: currentApplication ?? this.currentApplication,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isUpdating: isUpdating ?? this.isUpdating,
@@ -67,7 +66,7 @@ class ApplicationViewModel extends StateNotifier<ApplicationState> {
     print('📝 Cover Letter: ${application.coverLetter}');
     print('📝 Proposed Rate: ${application.proposedRate}');
     print('📝 Portfolio Links: ${application.portfolioLinks}');
-    
+
     state = state.copyWith(isSubmitting: true, error: null);
 
     final result = await submitApplicationUseCase(application);
@@ -139,7 +138,34 @@ class ApplicationViewModel extends StateNotifier<ApplicationState> {
     );
   }
 
-  Future<bool> updateApplicationStatus(String applicationId, String status) async {
+  /// Load applications for multiple campaigns and aggregate them
+  Future<void> getApplicationsForCampaigns(List<String> campaignIds) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    final List<ApplicationModel> allApplications = [];
+
+    for (final campaignId in campaignIds) {
+      final result = await getCampaignApplicationsUseCase(campaignId);
+      result.fold(
+        (failure) {
+          // Continue to next campaign even if one fails
+          print(
+              'Failed to get applications for campaign $campaignId: ${failure.error}');
+        },
+        (applications) {
+          allApplications.addAll(applications);
+        },
+      );
+    }
+
+    state = state.copyWith(
+      isLoading: false,
+      campaignApplications: allApplications,
+    );
+  }
+
+  Future<bool> updateApplicationStatus(
+      String applicationId, String status) async {
     state = state.copyWith(isUpdating: true, error: null);
 
     final params = UpdateApplicationStatusParams(
