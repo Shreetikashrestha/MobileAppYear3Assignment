@@ -9,16 +9,18 @@ class RegisterParams extends Equatable {
   final String fullName;
   final String username;
   final String password;
+  final bool isInfluencer;
 
   const RegisterParams({
     required this.email,
     required this.fullName,
     required this.username,
     required this.password,
+    required this.isInfluencer,
   });
 
   @override
-  List<Object?> get props => [email, fullName, username, password];
+  List<Object?> get props => [email, fullName, username, password, isInfluencer];
 }
 
 class RegisterUseCase {
@@ -33,6 +35,7 @@ class RegisterUseCase {
       params.fullName,
       params.username,
       params.password,
+      params.isInfluencer,
     );
   }
 }
