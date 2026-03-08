@@ -34,14 +34,20 @@ class AuthRepositoryImpl implements IAuthRepository {
     String fullName,
     String username,
     String password,
+    bool isInfluencer,
   ) async {
     try {
+      print('📝 [AuthRepository] Registering with isInfluencer: $isInfluencer');
+      
       final user = AuthApiModel(
         fullName: fullName,
         email: email,
         username: username,
         password: password,
+        isInfluencer: isInfluencer,
       );
+
+      print('📝 [AuthRepository] User model created: ${user.toJson()}');
 
       final result = await _remoteDataSource.register(user);
       return Right(result);
