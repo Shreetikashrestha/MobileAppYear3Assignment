@@ -16,7 +16,7 @@ class InfluencerRemoteDataSource implements IInfluencerRemoteDataSource {
   @override
   Future<List<InfluencerModel>> getInfluencers() async {
     try {
-      final response = await apiClient.get('/profiles/influencers');
+      final response = await apiClient.get('/api/profiles/influencers');
 
       if (response.statusCode == 200) {
         final data = response.data;
@@ -87,7 +87,7 @@ class InfluencerRemoteDataSource implements IInfluencerRemoteDataSource {
     try {
       // Use the same endpoint with search query parameter
       final response = await apiClient.get(
-        '/profiles/influencers',
+        '/api/profiles/influencers',
         queryParameters: {'search': query},
       );
 
@@ -158,7 +158,7 @@ class InfluencerRemoteDataSource implements IInfluencerRemoteDataSource {
   @override
   Future<InfluencerModel> getInfluencerProfile(String id) async {
     try {
-      final response = await apiClient.get('/profiles/$id');
+      final response = await apiClient.get('/api/profiles/$id');
 
       if (response.statusCode == 200) {
         final data = response.data;
