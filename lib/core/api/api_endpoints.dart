@@ -5,10 +5,10 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   /// Set to true when running on a physical device. Then set compIpAddress to your computer's IP (same WiFi).
-  static const bool isPhysicalDevice = true;
+  static const bool isPhysicalDevice = false;
 
   /// Your computer's IP for physical device testing (e.g. from ifconfig). Only used when isPhysicalDevice is true.
-  static const String compIpAddress = "192.168.18.52";
+  static const String compIpAddress = "192.168.18.60";
 
   static String get baseUrl {
     if (isPhysicalDevice) {
@@ -16,13 +16,13 @@ class ApiEndpoints {
     }
     //yadi android
     if (kIsWeb) {
-      return 'http://localhost:5050/api';
+      return 'http://127.0.0.1:5050/api';
     } else if (Platform.isAndroid) {
       return 'http://10.0.2.2:5050/api';
     } else if (Platform.isIOS) {
-      return 'http://localhost:5050/api';
+      return 'http://127.0.0.1:5050/api';
     } else {
-      return 'http://localhost:5050/api';
+      return 'http://127.0.0.1:5050/api';
     }
   }
 
