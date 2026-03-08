@@ -6,10 +6,10 @@ class ApiConfig {
   // - Real Device: http://YOUR_COMPUTER_IP:5050 (e.g., http://192.168.1.100:5050)
   
   // For Real Device (iPhone)
-  static const String baseUrl = 'http://192.168.18.60:5050';
+  // static const String baseUrl = 'http://192.168.18.60:5050';
   
   // Alternative URLs (uncomment the one you need)
-  // static const String baseUrl = 'http://127.0.0.1:5050'; // iOS Simulator
+  static const String baseUrl = 'http://127.0.0.1:5050'; // iOS Simulator
   // static const String baseUrl = 'http://localhost:5050'; // iOS Simulator alternative
   // static const String baseUrl = 'http://10.0.2.2:5050'; // Android Emulator
   
