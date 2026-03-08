@@ -15,11 +15,15 @@ class RegisterViewModel extends StateNotifier<AsyncValue<AuthApiModel?>> {
 
   Future<void> register(AuthApiModel user) async {
     state = const AsyncValue.loading();
+    
+    print('📝 [RegisterViewModel] Registering user with isInfluencer: ${user.isInfluencer}');
+    
     final result = await _registerUseCase(RegisterParams(
       email: user.email,
       fullName: user.fullName,
       username: user.username,
       password: user.password ?? '',
+      isInfluencer: user.isInfluencer,
     ));
 
     result.fold(
