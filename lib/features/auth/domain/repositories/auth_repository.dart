@@ -8,6 +8,7 @@ abstract class IAuthRepository {
     String fullName,
     String username,
     String password,
+    bool isInfluencer,
   );
 
   Future<Either<Failure, AuthApiModel>> login(
