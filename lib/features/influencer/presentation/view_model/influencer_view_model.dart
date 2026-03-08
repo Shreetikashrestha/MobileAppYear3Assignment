@@ -52,18 +52,21 @@ class InfluencerViewModel extends StateNotifier<InfluencerState> {
   }) : super(InfluencerState());
 
   Future<void> loadInfluencers() async {
+    print('🔄 [InfluencerViewModel] Starting to load influencers');
     state = state.copyWith(isLoading: true, error: null);
 
     final result = await getInfluencersUseCase();
 
     result.fold(
       (failure) {
+        print('❌ [InfluencerViewModel] Failed to load influencers: ${failure.message}');
         state = state.copyWith(
           isLoading: false,
           error: failure.message,
         );
       },
       (influencers) {
+        print('✅ [InfluencerViewModel] Successfully loaded ${influencers.length} influencers');
         state = state.copyWith(
           isLoading: false,
           influencers: influencers as List<InfluencerModel>,
@@ -105,18 +108,22 @@ class InfluencerViewModel extends StateNotifier<InfluencerState> {
   }
 
   Future<void> loadInfluencerProfile(String id) async {
+    print('🔄 [InfluencerViewModel] Loading profile for ID: $id');
     state = state.copyWith(isLoading: true, error: null);
 
     final result = await getInfluencerProfileUseCase(id);
 
     result.fold(
       (failure) {
+        print('❌ [InfluencerViewModel] Failed to load profile: ${failure.message}');
         state = state.copyWith(
           isLoading: false,
           error: failure.message,
         );
       },
       (influencer) {
+        print('✅ [InfluencerViewModel] Successfully loaded profile: ${influencer.fullName}');
+        print('✅ [InfluencerViewModel] Profile details - Bio: ${influencer.bio}, Niche: ${influencer.niche}, Followers: ${influencer.followersCount}');
         state = state.copyWith(
           isLoading: false,
           selectedInfluencer: influencer as InfluencerModel,

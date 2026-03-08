@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:influcollb_app/features/influencer/presentation/view_model/influencer_providers.dart';
-import 'package:influcollb_app/features/messages/presentation/pages/chat_screen.dart';
-import 'package:influcollb_app/features/messages/domain/entities/message_entity.dart';
 
 class InfluencerProfileScreen extends ConsumerStatefulWidget {
   final String influencerId;
@@ -28,36 +26,6 @@ class _InfluencerProfileScreenState
           .read(influencerViewModelProvider.notifier)
           .loadInfluencerProfile(widget.influencerId);
     });
-  }
-
-  void _startConversation() {
-    final influencer = ref.read(influencerViewModelProvider).selectedInfluencer;
-    if (influencer == null) return;
-
-    // Create a virtual conversation for new chat
-    final virtualConversation = Conversation(
-      id: 'new',
-      participants: [
-        Participant(
-          id: influencer.id,
-          fullName: influencer.fullName,
-          profilePicture: influencer.profilePicture,
-        ),
-      ],
-      unreadCount: 0,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatScreen(
-          conversationId: 'new',
-          conversation: virtualConversation,
-        ),
-      ),
-    );
   }
 
   @override
@@ -145,12 +113,18 @@ class _InfluencerProfileScreenState
                       CircleAvatar(
                         radius: 60,
                         backgroundColor: Colors.white,
-                        backgroundImage: influencer.profilePicture != null
+                        backgroundImage: (influencer.profilePicture != null &&
+                                         influencer.profilePicture!.isNotEmpty &&
+                                         influencer.profilePicture!.startsWith('http'))
                             ? NetworkImage(influencer.profilePicture!)
                             : null,
-                        child: influencer.profilePicture == null
+                        child: (influencer.profilePicture == null ||
+                                influencer.profilePicture!.isEmpty ||
+                                !influencer.profilePicture!.startsWith('http'))
                             ? Text(
-                                influencer.fullName[0].toUpperCase(),
+                                influencer.fullName.isNotEmpty
+                                    ? influencer.fullName[0].toUpperCase()
+                                    : '?',
                                 style: const TextStyle(
                                   fontSize: 48,
                                   fontWeight: FontWeight.bold,
@@ -250,24 +224,6 @@ class _InfluencerProfileScreenState
                           Icons.devices,
                         ),
                     ],
-                  ),
-                  const SizedBox(height: 24),
-                  // Message Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _startConversation,
-                      icon: const Icon(Icons.message),
-                      label: const Text('Send Message'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 24),
                   // Bio

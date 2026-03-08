@@ -5,13 +5,16 @@ import '../view_model/campaign_providers.dart';
 import '../../../../../app/theme/app_text_styles.dart';
 import '../../../application/presentation/pages/application_form_screen.dart';
 import '../../../application/presentation/view_model/application_providers.dart';
+import '../../../home/presentation/pages/create_campaign_screen.dart';
 
 class CampaignDetailScreen extends ConsumerWidget {
   final Campaign campaign;
+  final bool isOwnCampaign; // Flag to indicate if this is the brand's own campaign
 
   const CampaignDetailScreen({
     super.key,
     required this.campaign,
+    this.isOwnCampaign = false,
   });
 
   @override
@@ -140,49 +143,86 @@ class CampaignDetailScreen extends ConsumerWidget {
         child: SafeArea(
           child: SizedBox(
             width: double.infinity,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF8E24AA), Color(0xFFD81B60)],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFD81B60).withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: ElevatedButton(
-                onPressed: (isApplying || hasApplied) ? null : () => _handleApply(context, ref),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: isApplying
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
+            child: isOwnCampaign
+                ? Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF8E24AA), Color(0xFFD81B60)],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFD81B60).withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
                         ),
-                      )
-                    : Text(
-                        hasApplied ? 'Already Applied' : 'Apply Now',
-                        style: const TextStyle(
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () => _handleEdit(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'Edit Campaign',
+                        style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
                       ),
-              ),
-            ),
+                    ),
+                  )
+                : Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF8E24AA), Color(0xFFD81B60)],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFD81B60).withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: (isApplying || hasApplied)
+                          ? null
+                          : () => _handleApply(context, ref),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: isApplying
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              hasApplied ? 'Already Applied' : 'Apply Now',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                    ),
+                  ),
           ),
         ),
       ),
@@ -295,6 +335,26 @@ class CampaignDetailScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _handleEdit(BuildContext context) async {
+    // Navigate to edit campaign screen
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreateCampaignScreen(campaign: campaign),
+      ),
+    );
+
+    if (context.mounted && result == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Campaign updated successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context, true); // Return to previous screen with refresh flag
+    }
   }
 
   Future<void> _handleApply(BuildContext context, WidgetRef ref) async {

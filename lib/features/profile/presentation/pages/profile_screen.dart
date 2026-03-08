@@ -49,14 +49,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   Map<String, dynamic> socialChannels = {};
 
   // Brand stats (for own profile)
-  int followers = 0;
-  int following = 0;
+  int totalFollowers = 0; // Calculated from social accounts
   int campaigns = 0;
-
-  // Analytics data (for own profile)
-  int profileViews = 0;
-  double engagementRate = 0.0;
-  double responseRate = 0.0;
 
   // Application history data
   int pendingApplications = 0;
@@ -165,9 +159,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               try {
                 socialChannels = Map<String, dynamic>.from(
                     Uri.splitQueryString(socialChannelsJson));
+                
+                // Calculate total followers from all social accounts
+                int calculatedFollowers = 0;
+                
+                // Sum up followers from all platforms
+                final followerKeys = ['instagramFollowers', 'tiktokFollowers', 'facebookFollowers', 
+                                     'youtubeFollowers', 'twitterFollowers', 'twitchFollowers'];
+                
+                for (var key in followerKeys) {
+                  if (socialChannels.containsKey(key)) {
+                    final value = socialChannels[key];
+                    if (value != null && value.toString().isNotEmpty) {
+                      try {
+                        calculatedFollowers += int.parse(value.toString());
+                      } catch (e) {
+                        debugPrint('Error parsing $key: $e');
+                      }
+                    }
+                  }
+                }
+                
+                totalFollowers = calculatedFollowers;
+                debugPrint('📊 Total followers calculated: $totalFollowers');
               } catch (e) {
+                debugPrint('Error parsing social channels: $e');
                 socialChannels = {};
+                totalFollowers = 0;
               }
+            } else {
+              totalFollowers = 0;
             }
           });
 
@@ -204,13 +225,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               if (mounted) {
                 setState(() {
                   campaigns = stats['totalCampaigns'] ?? 0;
-                  followers = stats['totalApplicants'] ?? 0;
-                  following = stats['acceptedInfluencers'] ?? 0;
-
-                  // Load analytics data
-                  profileViews = stats['profileViews'] ?? 0;
-                  engagementRate = (stats['engagementRate'] ?? 0.0).toDouble();
-                  responseRate = (stats['responseRate'] ?? 0.0).toDouble();
                 });
               }
             }
@@ -882,8 +896,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     const SizedBox(height: 16),
                     if (widget.userId == null) _buildStatsSection(),
                     if (widget.userId == null) const SizedBox(height: 16),
-                    if (widget.userId == null) _buildAnalyticsSection(),
-                    if (widget.userId == null) const SizedBox(height: 16),
                     _buildBasicInfoSection(),
                     const SizedBox(height: 16),
                     if (userBio.isNotEmpty) _buildBioSection(),
@@ -915,165 +927,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
-  Widget _buildAnalyticsSection() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
-    final textColor = isDark ? Colors.white : Colors.black;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.purple.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.analytics,
-                  color: Colors.purple[700],
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text('Profile Analytics',
-                  style: AppTextStyles.heading4.copyWith(color: textColor)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildAnalyticItem(
-                  'Profile Views',
-                  profileViews > 0 ? profileViews.toString() : '0',
-                  Icons.remove_red_eye,
-                  Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildAnalyticItem(
-                  'Engagement',
-                  engagementRate > 0
-                      ? '${engagementRate.toStringAsFixed(1)}%'
-                      : '0%',
-                  Icons.trending_up,
-                  Colors.green,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildAnalyticItem(
-                  'Response Rate',
-                  responseRate > 0
-                      ? '${responseRate.toStringAsFixed(0)}%'
-                      : '0%',
-                  Icons.chat_bubble,
-                  Colors.orange,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildAnalyticItem(
-                  'Completion',
-                  '${(_profileCompletion * 100).toInt()}%',
-                  Icons.check_circle,
-                  _profileCompletion >= 0.8
-                      ? Colors.green
-                      : _profileCompletion >= 0.5
-                          ? Colors.orange
-                          : Colors.orangeAccent,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAnalyticItem(
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final labelColor = isDark ? Colors.white70 : Colors.grey[600];
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1.5,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 16,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: labelColor,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              color: color,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildStatsSection() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? const Color(0xFF2D1B4E) : Colors.white;
@@ -1096,13 +949,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildStatItem('$followers', 'Followers', Icons.people),
-          Container(
-            width: 1,
-            height: 60,
-            color: dividerColor,
-          ),
-          _buildStatItem('$following', 'Following', Icons.person_add),
+          _buildStatItem('$totalFollowers', 'Followers', Icons.people),
           Container(
             width: 1,
             height: 60,

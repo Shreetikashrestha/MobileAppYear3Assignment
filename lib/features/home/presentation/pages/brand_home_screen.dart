@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:influcollb_app/core/providers/api_provider.dart';
 import 'package:influcollb_app/features/campaign/data/models/campaign_model.dart';
 import 'package:influcollb_app/features/notification/presentation/pages/notifications_screen.dart';
-import 'package:influcollb_app/features/analytics/presentation/pages/analytics_screen.dart';
 import 'create_campaign_screen.dart';
-import 'find_influencer_screen.dart';
 import '../../../campaign/presentation/pages/campaign_detail_screen.dart';
 
 class BrandHomeScreen extends ConsumerStatefulWidget {
@@ -93,18 +91,6 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                             Row(
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.analytics_outlined,
-                                      color: Colors.white),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const AnalyticsScreen(),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                IconButton(
                                   icon: const Icon(Icons.notifications_outlined,
                                       color: Colors.white),
                                   onPressed: () {
@@ -155,47 +141,23 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildActionCard(
-                          icon: Icons.add_business,
-                          label: 'Create Campaign',
-                          color: const Color(0xFFF3E8FF),
-                          iconColor: const Color(0xFF8F00FF),
-                          onTap: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const CreateCampaignScreen(),
-                              ),
-                            );
-                            if (result == true) {
-                              _loadCampaigns();
-                            }
-                          },
+                  child: _buildActionCard(
+                    icon: Icons.add_business,
+                    label: 'Create Campaign',
+                    color: const Color(0xFFF3E8FF),
+                    iconColor: const Color(0xFF8F00FF),
+                    onTap: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const CreateCampaignScreen(),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildActionCard(
-                          icon: Icons.search,
-                          label: 'Find Influencers',
-                          color: const Color(0xFFFFE8F0),
-                          iconColor: const Color(0xFFFF5E69),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const FindInfluencerScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                      );
+                      if (result == true) {
+                        _loadCampaigns();
+                      }
+                    },
                   ),
                 ),
               ),
@@ -484,9 +446,17 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) =>
-                        CampaignDetailScreen(campaign: campaign),
+                        CampaignDetailScreen(
+                          campaign: campaign,
+                          isOwnCampaign: true, // Brand viewing their own campaign
+                        ),
                   ),
-                );
+                ).then((result) {
+                  // Refresh campaigns if edited
+                  if (result == true) {
+                    _loadCampaigns();
+                  }
+                });
               },
               style: TextButton.styleFrom(
                 backgroundColor: Colors.grey[800],
@@ -497,7 +467,7 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text('Preview'),
+              child: const Text('View Details'),
             ),
           ),
         ],

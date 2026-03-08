@@ -13,6 +13,14 @@ class InfluencerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Debug logging
+    print('🎨 [InfluencerCard] Rendering card for: ${influencer.fullName}');
+    print('🎨 [InfluencerCard] Bio: ${influencer.bio}');
+    print('🎨 [InfluencerCard] Niche: ${influencer.niche}');
+    print('🎨 [InfluencerCard] Followers: ${influencer.followersCount}');
+    print('🎨 [InfluencerCard] Engagement: ${influencer.engagementRate}');
+    print('🎨 [InfluencerCard] Verified: ${influencer.isVerified}');
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -41,12 +49,18 @@ class InfluencerCard extends StatelessWidget {
                     CircleAvatar(
                       radius: 32,
                       backgroundColor: Colors.blue[100],
-                      backgroundImage: influencer.profilePicture != null
+                      backgroundImage: (influencer.profilePicture != null && 
+                                       influencer.profilePicture!.isNotEmpty &&
+                                       influencer.profilePicture!.startsWith('http'))
                           ? NetworkImage(influencer.profilePicture!)
                           : null,
-                      child: influencer.profilePicture == null
+                      child: (influencer.profilePicture == null || 
+                              influencer.profilePicture!.isEmpty ||
+                              !influencer.profilePicture!.startsWith('http'))
                           ? Text(
-                              influencer.fullName[0].toUpperCase(),
+                              influencer.fullName.isNotEmpty 
+                                  ? influencer.fullName[0].toUpperCase()
+                                  : '?',
                               style: const TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,

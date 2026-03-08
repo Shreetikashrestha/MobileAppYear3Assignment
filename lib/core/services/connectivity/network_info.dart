@@ -21,11 +21,18 @@ class NetworkInfo implements INetworkInfo {
     if (result.contains(ConnectivityResult.none)) {
       return false;
     }
+    // For development with localhost, always return true if WiFi/Ethernet is connected
+    // This allows the app to work with local backend servers
+    if (result.contains(ConnectivityResult.wifi) || 
+        result.contains(ConnectivityResult.ethernet)) {
+      return true;
+    }
     return await _hasInternetAccess();
   }
 
   Future<bool> _hasInternetAccess() async {
     try {
+      // Check internet connectivity
       final result = await InternetAddress.lookup('google.com');
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } on SocketException catch (_) {

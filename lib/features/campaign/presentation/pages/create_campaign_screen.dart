@@ -104,21 +104,85 @@ class _CreateCampaignScreenState extends ConsumerState<CreateCampaignScreen> {
 
     if (_selectedDeadline == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a deadline')),
+        const SnackBar(
+          content: Text('Please select a deadline'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validate deadline is not in the past
+    if (_selectedDeadline!.isBefore(DateTime.now())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Campaign deadline cannot be in the past'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validate budget range
+    final minBudget = double.tryParse(_budgetMinController.text);
+    final maxBudget = double.tryParse(_budgetMaxController.text);
+
+    if (minBudget == null || maxBudget == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter valid budget amounts'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (minBudget < 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Minimum budget must be at least NPR 100'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (maxBudget > 1000000) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Maximum budget cannot exceed NPR 1,000,000'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (minBudget > maxBudget) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Minimum budget cannot be greater than maximum budget'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
 
     if (_requirements.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add at least one requirement')),
+        const SnackBar(
+          content: Text('Please add at least one requirement'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
 
     if (_deliverables.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add at least one deliverable')),
+        const SnackBar(
+          content: Text('Please add at least one deliverable'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }

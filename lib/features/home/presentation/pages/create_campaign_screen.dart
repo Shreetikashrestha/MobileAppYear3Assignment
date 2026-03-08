@@ -74,7 +74,7 @@ class _CreateCampaignScreenState extends ConsumerState<CreateCampaignScreen> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now().add(const Duration(days: 30)),
-      firstDate: DateTime.now(),
+      firstDate: DateTime.now(), // Only allow present or future dates
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
@@ -103,6 +103,61 @@ class _CreateCampaignScreenState extends ConsumerState<CreateCampaignScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select a deadline'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validate deadline is not in the past
+    if (_selectedDeadline!.isBefore(DateTime.now())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Campaign deadline cannot be in the past'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validate budget range
+    final minBudget = double.tryParse(_budgetMinController.text);
+    final maxBudget = double.tryParse(_budgetMaxController.text);
+
+    if (minBudget == null || maxBudget == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter valid budget amounts'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (minBudget < 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Minimum budget must be at least ₹100'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (maxBudget > 1000000) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Maximum budget cannot exceed ₹1,000,000'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (minBudget > maxBudget) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Minimum budget cannot be greater than maximum budget'),
           backgroundColor: Colors.red,
         ),
       );
@@ -281,15 +336,22 @@ class _CreateCampaignScreenState extends ConsumerState<CreateCampaignScreen> {
                 Expanded(
                   child: _buildTextField(
                     controller: _budgetMinController,
-                    label: 'Min Budget',
-                    hint: '5000',
+                    label: 'Min Budget (₹)',
+                    hint: '100',
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Required';
                       }
-                      if (double.tryParse(value) == null) {
+                      final budget = double.tryParse(value);
+                      if (budget == null) {
                         return 'Invalid number';
+                      }
+                      if (budget < 100) {
+                        return 'Min ₹100';
+                      }
+                      if (budget > 1000000) {
+                        return 'Max ₹1M';
                       }
                       return null;
                     },
@@ -299,26 +361,44 @@ class _CreateCampaignScreenState extends ConsumerState<CreateCampaignScreen> {
                 Expanded(
                   child: _buildTextField(
                     controller: _budgetMaxController,
-                    label: 'Max Budget',
-                    hint: '15000',
+                    label: 'Max Budget (₹)',
+                    hint: '1000',
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Required';
                       }
-                      if (double.tryParse(value) == null) {
+                      final budget = double.tryParse(value);
+                      if (budget == null) {
                         return 'Invalid number';
                       }
+                      if (budget < 100) {
+                        return 'Min ₹100';
+                      }
+                      if (budget > 1000000) {
+                        return 'Max ₹1M';
+                      }
                       final min = double.tryParse(_budgetMinController.text);
-                      final max = double.tryParse(value);
-                      if (min != null && max != null && max < min) {
-                        return 'Must be > min';
+                      if (min != null && budget < min) {
+                        return 'Must be ≥ min';
                       }
                       return null;
                     },
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            // Budget hint
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                'Budget range: ₹100 - ₹1,000,000',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -375,6 +455,18 @@ class _CreateCampaignScreenState extends ConsumerState<CreateCampaignScreen> {
                     ),
                     const Icon(Icons.calendar_today, color: Color(0xFF8F00FF)),
                   ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Deadline hint
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                'Only present or future dates allowed',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
                 ),
               ),
             ),
