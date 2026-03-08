@@ -88,6 +88,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     setState(() => _isLoginInProgress = true);
 
+    // Note: The role selector in UI is just for display
+    // The actual user role comes from the backend API response
     ref.read(loginViewModelProvider.notifier).login(
           emailController.text.trim(),
           passwordController.text.trim(),
@@ -111,6 +113,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _handleLoginSuccess(bool isInfluencer) async {
     if (!mounted) return;
+
+    // Show user which role they're logging in as
+    final roleText = isInfluencer ? 'Influencer' : 'Brand';
+    SnackbarUtils.showSuccess(context, 'Welcome back! Logging in as $roleText');
 
     try {
       // Check if biometric setup is needed
