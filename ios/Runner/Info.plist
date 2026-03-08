@@ -59,8 +59,12 @@
 	<string>YOUR_GOOGLE_MAPS_API_KEY</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>We need Face ID or Touch ID to securely log you into your account.</string>
-
-
-
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
