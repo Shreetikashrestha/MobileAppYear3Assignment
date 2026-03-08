@@ -100,38 +100,38 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
 
       if (response.statusCode == 201 && response.data['success'] == true) {
         final data = response.data['data'] as Map<String, dynamic>;
-        final token = data['token'] as String? ?? '';
-        final userData = data['user'] as Map<String, dynamic>;
+        
+        // Handle both wrapped and unwrapped response formats
+        final userData = (data.containsKey('user') ? data['user'] : data) as Map<String, dynamic>;
+        final token = (data.containsKey('token') ? data['token'] : '') as String? ?? '';
         
         // Debug logging
         print('📝 Register Response - User Data: $userData');
         print('📝 User ID from response (_id): ${userData['_id']}');
-        print('📝 User ID from response (userId): ${userData['userId']}');
-        print('📝 User ID from response (id): ${userData['id']}');
         
         final registeredUser = AuthApiModel.fromJson(userData);
         
         print('📝 Parsed User ID: ${registeredUser.id}');
 
-        // Save Auth Token
-        await _tokenService.saveToken(token);
+        // Save Auth Token if provided
+        if (token.isNotEmpty) {
+          await _tokenService.saveToken(token);
+        }
 
-        // Ensure we have a valid user ID before saving - try all possible fields
+        // Ensure we have a valid user ID before saving
         final userId = registeredUser.id ?? 
                        userData['userId'] as String? ?? 
                        userData['_id'] as String? ?? 
-                       userData['id'] as String? ?? 
                        '';
         
         if (userId.isEmpty) {
           print('❌ ERROR: User ID is empty! Cannot save session.');
-          print('❌ Available fields in userData: ${userData.keys.toList()}');
           throw Exception('User ID is missing from registration response');
         }
 
         print('💾 Saving user session with ID: $userId');
 
-        // Save user session after registration with isInfluencer flag
+        // Save user session
         await _userSessionService.saveUserSession(
           userId: userId,
           email: registeredUser.email,
