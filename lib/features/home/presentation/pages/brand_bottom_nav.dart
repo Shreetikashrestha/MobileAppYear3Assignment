@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:influcollb_app/features/home/presentation/pages/brand_home_screen.dart';
 import 'package:influcollb_app/features/home/presentation/pages/enhanced_brand_dashboard_screen.dart';
+import 'package:influcollb_app/features/influencer/presentation/pages/find_influencer_screen.dart';
 import 'package:influcollb_app/features/messages/presentation/pages/conversations_list_screen.dart';
 import 'package:influcollb_app/features/profile/presentation/pages/profile_screen.dart';
 
@@ -15,7 +16,7 @@ class _BrandBottomNavState extends State<BrandBottomNav> {
   int _currentIndex = 0;
   final List<Widget> _screens = const [
     BrandHomeScreen(),
-    EnhancedBrandDashboardScreen(),
+    FindInfluencerScreen(), // Changed from EnhancedBrandDashboardScreen to FindInfluencerScreen
     ConversationsListScreen(),
     ProfileScreen(),
   ];
@@ -42,9 +43,9 @@ class _BrandBottomNavState extends State<BrandBottomNav> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.campaign_outlined),
-            activeIcon: Icon(Icons.campaign),
-            label: 'Campaigns',
+            icon: Icon(Icons.search_outlined),
+            activeIcon: Icon(Icons.search),
+            label: 'Find Influencers',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.message_outlined),
