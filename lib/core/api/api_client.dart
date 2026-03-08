@@ -26,6 +26,8 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          print('🌐 [ApiClient] Request: ${options.method} ${options.uri}');
+          print('🌐 [ApiClient] Data: ${options.data}');
           options.headers['Content-Type'] = 'application/json';
           // Add Authorization header if token exists and not for login/register
           final token = await _tokenService.getToken();
@@ -37,7 +39,13 @@ class ApiClient {
           }
           return handler.next(options);
         },
+        onResponse: (response, handler) {
+          print('✅ [ApiClient] Response: ${response.statusCode} ${response.requestOptions.uri}');
+          return handler.next(response);
+        },
         onError: (error, handler) async {
+          print('❌ [ApiClient] Error: ${error.type} ${error.message}');
+          print('❌ [ApiClient] Path: ${error.requestOptions.uri}');
           // Handle 401/403 Unauthorized/Forbidden
           if (error.response?.statusCode == 401 ||
               error.response?.statusCode == 403) {
