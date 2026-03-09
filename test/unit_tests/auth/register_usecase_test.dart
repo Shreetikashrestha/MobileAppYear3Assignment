@@ -30,13 +30,15 @@ void main() {
   );
 
   group('RegisterUseCase', () {
-    test('should return AuthApiModel when registration is successful', () async {
+    test('should return AuthApiModel when registration is successful',
+        () async {
       // Arrange
       when(() => mockAuthRepository.register(
             tEmail,
             tFullName,
             tUsername,
             tPassword,
+            false,
           )).thenAnswer((_) async => Right(tAuthModel));
 
       // Act
@@ -46,6 +48,7 @@ void main() {
           fullName: tFullName,
           username: tUsername,
           password: tPassword,
+          isInfluencer: false,
         ),
       );
 
@@ -56,6 +59,7 @@ void main() {
             tFullName,
             tUsername,
             tPassword,
+            false,
           )).called(1);
       verifyNoMoreInteractions(mockAuthRepository);
     });
@@ -68,6 +72,7 @@ void main() {
             tFullName,
             tUsername,
             tPassword,
+            false,
           )).thenAnswer((_) async => Left(tFailure));
 
       // Act
@@ -77,6 +82,7 @@ void main() {
           fullName: tFullName,
           username: tUsername,
           password: tPassword,
+          isInfluencer: false,
         ),
       );
 
@@ -87,12 +93,14 @@ void main() {
             tFullName,
             tUsername,
             tPassword,
+            false,
           )).called(1);
     });
 
     test('should pass all parameters correctly to repository', () async {
       // Arrange
       when(() => mockAuthRepository.register(
+            any(),
             any(),
             any(),
             any(),
@@ -106,6 +114,7 @@ void main() {
           fullName: tFullName,
           username: tUsername,
           password: tPassword,
+          isInfluencer: false,
         ),
       );
 
@@ -115,6 +124,7 @@ void main() {
             tFullName,
             tUsername,
             tPassword,
+            false,
           )).called(1);
     });
   });

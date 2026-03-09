@@ -24,6 +24,7 @@ void main() {
       fullName: '',
       username: '',
       password: '',
+      isInfluencer: false,
     ));
   });
 
@@ -88,6 +89,7 @@ void main() {
               fullName: tAuthModel.fullName,
               username: tAuthModel.username,
               password: tAuthModel.password ?? '',
+              isInfluencer: tAuthModel.isInfluencer,
             ),
           )).called(1);
     });
@@ -145,11 +147,13 @@ void main() {
               fullName: 'Test User',
               username: 'testuser',
               password: '',
+              isInfluencer: true,
             ),
           )).called(1);
     });
 
-    test('should update state correctly on multiple registration attempts', () async {
+    test('should update state correctly on multiple registration attempts',
+        () async {
       // Arrange - First attempt fails
       final tFailure = ServerFailure('Email already exists');
       when(() => mockRegisterUseCase(any()))
